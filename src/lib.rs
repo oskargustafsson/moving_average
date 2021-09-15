@@ -1,3 +1,20 @@
+/*!
+This crate provides several algorithms for calculating
+[simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
+
+All implementations implement the MovingAverage trait, which provides a unified iterface.
+
+The implementations have different pros and cons.
+
+| Implementation         | Add sample | Get average | Comment |
+|------------------------|------------|-------------|---------|
+| NoSumMovingAverage     | O(1)       | O(n)        |  |
+| SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
+| SumTreeMovingAverage   | O(log(n))  | O(1)        |  |
+
+`n` in the above chart refers to the sample size of the moving average window.
+
+*/
 mod moving_average;
 mod no_sum_moving_average;
 mod single_sum_moving_average;
