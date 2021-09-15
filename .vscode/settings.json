@@ -1,0 +1,9 @@
+{
+	"files.exclude": {
+		"target/": true,
+	},
+	"rust-analyzer.inlayHints.enable": false,
+	"rust-analyzer.diagnostics.disabled": [
+		"mismatched-arg-count"
+	]
+}
