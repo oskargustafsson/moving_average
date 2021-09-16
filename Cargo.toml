@@ -9,3 +9,5 @@ num-traits = "0.2.14"
 [dev-dependencies]
 rand = { version = "0.8.4", features = ["small_rng"] }
 nalgebra = "0.29.0"
+euclid = "0.22.6"
+cgmath = "0.18.0"

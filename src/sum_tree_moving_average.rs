@@ -19,12 +19,7 @@ pub struct SumTreeMovingAverage<Divisor, Sample> {
 
 impl<Divisor, Sample> MovingAverage<Divisor, Sample> for SumTreeMovingAverage<Divisor, Sample>
 where
-	Sample: Copy
-		+ PartialOrd
-		+ AddAssign
-		+ Add<Output = Sample>
-		+ SubAssign
-		+ Div<Divisor, Output = Sample>,
+	Sample: Copy + AddAssign + Add<Output = Sample> + SubAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {

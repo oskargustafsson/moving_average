@@ -17,12 +17,7 @@ pub struct NoSumMovingAverage<Divisor, Sample> {
 
 impl<Divisor, Sample> MovingAverage<Divisor, Sample> for NoSumMovingAverage<Divisor, Sample>
 where
-	Sample: Copy
-		+ PartialOrd
-		+ Add<Output = Sample>
-		+ AddAssign
-		+ SubAssign
-		+ Div<Divisor, Output = Sample>,
+	Sample: Copy + Add<Output = Sample> + AddAssign + SubAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {
