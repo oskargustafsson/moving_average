@@ -137,18 +137,16 @@ unit test that empirically proves that the rounding error does not accumulate.
 
 */
 
-pub mod moving_average;
-pub mod no_sum_moving_average;
-pub mod single_sum_moving_average;
-pub mod sum_tree;
-pub mod sum_tree_moving_average;
+mod moving_average;
+mod no_sum_moving_average;
+mod single_sum_moving_average;
+mod sum_tree;
+mod sum_tree_moving_average;
 
 pub use crate::moving_average::MovingAverage;
 pub use crate::no_sum_moving_average::NoSumMovingAverage;
 pub use crate::single_sum_moving_average::SingleSumMovingAverage;
 pub use crate::sum_tree_moving_average::SumTreeMovingAverage;
-
-pub use num_traits;
 
 #[cfg(test)]
 mod tests {
