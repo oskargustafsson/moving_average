@@ -3,7 +3,7 @@ use std::{
 	any::type_name,
 	collections::VecDeque,
 	marker::{self, PhantomData},
-	ops::{Add, AddAssign, Div, SubAssign},
+	ops::{Add, Div},
 };
 
 use super::{sum_tree::SumTree, MovingAverage};
@@ -19,7 +19,7 @@ pub struct SumTreeMovingAverage<Divisor, Sample> {
 
 impl<Divisor, Sample> MovingAverage<Divisor, Sample> for SumTreeMovingAverage<Divisor, Sample>
 where
-	Sample: Copy + AddAssign + Add<Output = Sample> + SubAssign + Div<Divisor, Output = Sample>,
+	Sample: Copy + Add<Output = Sample> + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {
