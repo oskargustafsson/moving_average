@@ -40,14 +40,15 @@ loop {
 ## Implementations
 
 One way to achieve good performance when calculating simple moving averages is to cache previous
-calculations, specifically the sum of the samples currently in the moving window.
+calculations, specifically the sum of the samples currently in the sample window. Caching this sum
+has both pros and cons, which is what motivates the three different implementations described below.
 
 ### SingleSumMovingAverage
 
-This is exactly what is done in the SingleSumMovingAverage implementation (hence the name, a single
-sum of all samples is cached). The only problem with this approach is that most floating point
-numbers can't be stored exactly, so every time a new number is added to the sum, there is a risk of
-accumulating a rounding error.
+This implementation caches the sum of all samples in the sample window as a single value, leading to
+`O(1)` time complexity for both writing new samples and reading their average. The problem with this
+approach is that most floating point numbers can't be stored exactly, so every time a such a number
+is added to the sum, there is a risk of accumulating a rounding error.
 
 Thankfully, the mean signed rounding error (`summed_average - exact_average`) for floating point
 numbers is 0, as the numbers are on average rounded up as much as they are rounded down. The
@@ -63,15 +64,21 @@ TODO: Graph
 *Note that both axes of the graph are logarithmic.*
 
 **When to use**
- - For samples whose sum can be exactly represented in memory, e.g. integers
-   (including [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html), which is backed
-   by integer types).
- - Or, when performance is more important than floating point exactness.
+ - When samples can be represented exactly in memory, in which case there is no downside to this
+   approach. Such samples include all integer types and
+   [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html), which is backed by integer
+   types.
+ - When performance is more important than floating point exactness.
 
 ### NoSumMovingAverage
 
 The error variance issue described above can be avoided by simply not caching the sum and
-calculating it from scratch, every time it is requested. This is what NoSumMovingAverage does.
+calculating it from scratch, at `O(N)` time complexity, every time it is requested. This is what
+NoSumMovingAverage does.
+
+**When to use**
+ - When the sample window size is so small that the summation cost is negligable.
+ - When new samples are written significantly more often than the average value is read.
 
 ### SumTreeMovingAverage
 
@@ -125,15 +132,19 @@ is what keeps the floating point rounding error from accumulating.
 submit a [PR](https://github.com/oskargustafsson/moving_average/pulls). In the mean time, there is a
 unit test that empirically proves that the rounding error does not accumulate.
 
+**When to use**
+ - In most cases where floating point data is involved, unless writes are much more common than
+   reads.
+
 ### Summary (no pun intended)
 
-| Implementation         | Add sample   | Get average   | Caveat |
-|------------------------|--------------|---------------|--------|
-| SingleSumMovingAverage | `O(1)`       | `O(1)`        | May accumulate floating point rounding errors. |
-| NoSumMovingAverage     | `O(1)`       | `O(N)`        |  |
-| SumTreeMovingAverage   | `O(log(N))`  | `O(1)`        |  |
+| Implementation         | Add sample   | Get average   |
+|------------------------|--------------|---------------|
+| SingleSumMovingAverage | `O(1)`       | `O(1)`        |
+| NoSumMovingAverage     | `O(1)`       | `O(N)`        |
+| SumTreeMovingAverage   | `O(log(N))`  | `O(1)`        |
 
-`N` in the above chart refers to the sample size of the moving average window.
+`N` refers to the size of the sample window.
 
 */
 
