@@ -1,6 +1,6 @@
 /*!
 This crate provides several algorithms for calculating
-[simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
+[simple moving averages](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
 
 All variants implement the MovingAverage trait, which provides a unified iterface. The interface
 is generic over sample type, meaning that any type that supports addition, subtraction and division
@@ -8,14 +8,15 @@ by a scalar can be averaged. This includes most primitive numeric types
 ([f32](https://doc.rust-lang.org/std/primitive.f32.html),
 [u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
 [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
-most third party math library types ([nalgebra](https://docs.rs/nalgebra/),
-[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...)
+many third party math library ([nalgebra](https://docs.rs/nalgebra/),
+[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) types.
 
 ## Examples
 
 *Floating point numbers*
 ```rust
-let mut ma = SumTreeMovingAverage::new(2); // Window size = 2
+# use moving_average::{MovingAverage, SumTreeMovingAverage};
+let mut ma = SumTreeMovingAverage::<f32, _>::new(2); // Window size = 2
 ma.add_sample(1.0);
 ma.add_sample(2.0);
 ma.add_sample(3.0);
@@ -24,12 +25,15 @@ assert_eq!(ma.get_average_sample(), 2.5); // (2 + 3) / 2 = 2.5
 
 *Durations*
 ```rust
-let mut ma = SingleSumMovingAverage::new(10);
+# use moving_average::{MovingAverage, SingleSumMovingAverage};
+# use std::time::{Duration, Instant};
+let mut ma = SingleSumMovingAverage::from_zero(Duration::ZERO, 10);
 loop {
 	let instant = Instant::now();
 	// [ application code ]
 	ma.add_sample(instant.elapsed());
 	dbg!("Average iteration duration: {}", ma.get_average_sample());
+	# break;
 }
 ```
 
@@ -44,16 +48,19 @@ The implementations have different pros and cons.
 `n` in the above chart refers to the sample size of the moving average window.
 
 */
-mod moving_average;
-mod no_sum_moving_average;
-mod single_sum_moving_average;
-mod sum_tree;
-mod sum_tree_moving_average;
 
-pub use moving_average::MovingAverage;
-pub use no_sum_moving_average::NoSumMovingAverage;
-pub use single_sum_moving_average::SingleSumMovingAverage;
-pub use sum_tree_moving_average::SumTreeMovingAverage;
+pub mod moving_average;
+pub mod no_sum_moving_average;
+pub mod single_sum_moving_average;
+pub mod sum_tree;
+pub mod sum_tree_moving_average;
+
+pub use crate::moving_average::MovingAverage;
+pub use crate::no_sum_moving_average::NoSumMovingAverage;
+pub use crate::single_sum_moving_average::SingleSumMovingAverage;
+pub use crate::sum_tree_moving_average::SumTreeMovingAverage;
+
+pub use num_traits;
 
 #[cfg(test)]
 mod tests {
