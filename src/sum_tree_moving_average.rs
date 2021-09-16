@@ -10,14 +10,14 @@ use super::{sum_tree::SumTree, MovingAverage};
 
 type SumTreeNodeIdx = usize;
 
-pub struct SumTreeMovingAverage<Divisor, Sample, const MAX_NUM_SAMPLES: usize> {
+pub struct SumTreeMovingAverage<Sample, Divisor, const MAX_NUM_SAMPLES: usize> {
 	samples: VecDeque<SumTreeNodeIdx>,
 	sum_tree: SumTree<Sample>,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize> MovingAverage<Divisor, Sample>
-	for SumTreeMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+impl<Sample, Divisor, const MAX_NUM_SAMPLES: usize> MovingAverage<Sample, Divisor>
+	for SumTreeMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
 where
 	Sample: Copy + Add<Output = Sample> + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
@@ -70,8 +70,8 @@ where
 	}
 }
 
-impl<Divisor, Sample: Zero + Copy, const MAX_NUM_SAMPLES: usize>
-	SumTreeMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+impl<Sample: Zero + Copy, Divisor, const MAX_NUM_SAMPLES: usize>
+	SumTreeMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
 {
 	pub fn new() -> Self {
 		Self {
@@ -82,8 +82,8 @@ impl<Divisor, Sample: Zero + Copy, const MAX_NUM_SAMPLES: usize>
 	}
 }
 
-impl<Divisor, Sample: Copy, const MAX_NUM_SAMPLES: usize>
-	SumTreeMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+impl<Sample: Copy, Divisor, const MAX_NUM_SAMPLES: usize>
+	SumTreeMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
 {
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {

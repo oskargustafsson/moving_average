@@ -8,14 +8,14 @@ use std::{
 
 use super::MovingAverage;
 
-pub struct NoSumMovingAverage<Divisor, Sample, const MAX_NUM_SAMPLES: usize> {
+pub struct NoSumMovingAverage<Sample, Divisor, const MAX_NUM_SAMPLES: usize> {
 	samples: VecDeque<Sample>,
 	zero: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize> MovingAverage<Divisor, Sample>
-	for NoSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+impl<Sample, Divisor, const MAX_NUM_SAMPLES: usize> MovingAverage<Sample, Divisor>
+	for NoSumMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
 where
 	Sample: Copy + AddAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
@@ -72,8 +72,8 @@ where
 	}
 }
 
-impl<Divisor, Sample: Zero, const MAX_NUM_SAMPLES: usize>
-	NoSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+impl<Sample: Zero, Divisor, const MAX_NUM_SAMPLES: usize>
+	NoSumMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
 {
 	pub fn new() -> Self {
 		Self {
@@ -84,8 +84,8 @@ impl<Divisor, Sample: Zero, const MAX_NUM_SAMPLES: usize>
 	}
 }
 
-impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize>
-	NoSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+impl<Sample, Divisor, const MAX_NUM_SAMPLES: usize>
+	NoSumMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
 {
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {

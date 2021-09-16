@@ -8,7 +8,7 @@
 /// Terminology:
 ///  - Sample: A data point.
 ///  - Sample window: The subset of all samples used for average calculations.
-pub trait MovingAverage<Divisor, Sample> {
+pub trait MovingAverage<Sample, Divisor = Sample> {
 	/// Adds a sample to the series of samples. If the sample window is full, this will cause the
 	/// oldest sample to be dropped, i.e. no longer contribute to the average.
 	fn add_sample(&mut self, new_sample: Sample);

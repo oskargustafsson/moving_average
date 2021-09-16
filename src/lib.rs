@@ -16,7 +16,7 @@ many third party math library ([nalgebra](https://docs.rs/nalgebra/),
 *Floating point numbers*
 ```rust
 # use moving_average::{MovingAverage, SumTreeMovingAverage};
-let mut ma = SumTreeMovingAverage::<f32, _, 2>::new(); // Window size = 2
+let mut ma = SumTreeMovingAverage::<_, f32, 2>::new(); // Window size = 2
 ma.add_sample(1.0);
 ma.add_sample(2.0);
 ma.add_sample(3.0);
@@ -156,7 +156,7 @@ mod tests {
 		(
 			$divisor_type:ty, $max_num_samples:expr, $ctor:ident $(, $zero:expr)?
 		) => {{
-			let ma_impls: [Box<dyn MovingAverage<$divisor_type, _>>; 3] = [
+			let ma_impls: [Box<dyn MovingAverage<_, $divisor_type>>; 3] = [
 				Box::new(SingleSumMovingAverage::<_, _, $max_num_samples>::$ctor($($zero ,)?)),
 				Box::new(SumTreeMovingAverage::<_, _, $max_num_samples>::$ctor($($zero ,)?)),
 				Box::new(NoSumMovingAverage::<_, _, $max_num_samples>::$ctor($($zero ,)?)),
