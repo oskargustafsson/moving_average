@@ -2,15 +2,44 @@
 This crate provides several algorithms for calculating
 [simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
 
-All implementations implement the MovingAverage trait, which provides a unified iterface.
+All variants implement the MovingAverage trait, which provides a unified iterface. The interface
+is generic over sample type, meaning that any type that supports addition, subtraction and division
+by a scalar can be averaged. This includes most primitive numeric types
+([f32](https://doc.rust-lang.org/std/primitive.f32.html),
+[u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
+[Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
+most third party math library types ([nalgebra](https://docs.rs/nalgebra/),
+[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...)
+
+## Examples
+
+*Floating point numbers*
+```rust
+let mut ma = SumTreeMovingAverage::new(2); // Window size = 2
+ma.add_sample(1.0);
+ma.add_sample(2.0);
+ma.add_sample(3.0);
+assert_eq!(ma.get_average_sample(), 2.5); // (2 + 3) / 2 = 2.5
+```
+
+*Durations*
+```rust
+let mut ma = SingleSumMovingAverage::new(10);
+loop {
+    let instant = Instant::now();
+    // [ application code ]
+    ma.add_sample(instant.elapsed());
+    dbg!("Average iteration duration: {}", ma.get_average_sample());
+}
+```
 
 The implementations have different pros and cons.
 
-| Implementation         | Add sample | Get average | Comment |
+| Implementation         | Add sample | Get average | Caveat |
 |------------------------|------------|-------------|---------|
 | NoSumMovingAverage     | O(1)       | O(n)        |  |
-| SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
 | SumTreeMovingAverage   | O(log(n))  | O(1)        |  |
+| SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
 
 `n` in the above chart refers to the sample size of the moving average window.
 
@@ -29,8 +58,6 @@ pub use sum_tree_moving_average::SumTreeMovingAverage;
 #[cfg(test)]
 mod tests {
     use crate::{MovingAverage, NoSumMovingAverage, SingleSumMovingAverage, SumTreeMovingAverage};
-    use nalgebra::Vector2;
-    use std::time::Duration;
 
     macro_rules! get_ma_impls {
 		(
@@ -129,7 +156,9 @@ mod tests {
     }
 
     #[test]
-    fn vector2_f32_samples() {
+    fn nalgebra_vector2_f32_samples() {
+        use nalgebra::Vector2;
+
         for ma in &mut get_ma_impls!(f32, 3, new) {
             assert_eq!(ma.get_average_sample(), Vector2::new(0.0, 0.0));
 
@@ -152,6 +181,8 @@ mod tests {
 
     #[test]
     fn duration_samples() {
+        use std::time::Duration;
+
         for ma in &mut get_ma_impls!(u32, 3, from_zero, Duration::ZERO) {
             assert_eq!(ma.get_average_sample(), Duration::from_secs(0));
 
