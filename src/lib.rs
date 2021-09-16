@@ -37,13 +37,68 @@ loop {
 }
 ```
 
-The implementations have different pros and cons.
+## Implementations
+
+One way to achieve good performance when calculating simple moving averages is to cache previous
+calculations, specifically the sum of the samples currently in the moving window.
+
+### SingleSumMovingAverage
+
+This is exactly what is done in the SingleSumMovingAverage implementation (hence the name, a single
+sum of all samples is cached). The only problem with this approach is that most floating point
+numbers can't be stored exactly, so every time a new number is added to the sum, there is a risk of
+accumulating a rounding error.
+
+Thankfully, the mean signed rounding error (`summed_average - exact_average`) for floating point
+numbers is 0, as the numbers are on average rounded up as much as they are rounded down. The
+variance of the signed error, however increases with the number of samples added, analogously to a
+[random walk](https://stats.stackexchange.com/questions/159650/why-does-the-variance-of-the-random-walk-increase).
+
+The magnitude of the error variance depends on many factors, including moving window size, average
+sample magnitude and distribution. Below is a visualization of how the error variance grows with
+the number of samples, for a typical window and set of samples.
+
+TODO: Graph
+
+*Note that both axes of the graph are logarithmic.*
+
+**When to use**
+ - For samples whose sum can be exactly represented in memory, e.g. integers
+   (including [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html), which is backed
+   by integer types).
+ - Or, when performance is more important than floating point exactness.
+
+### NoSumMovingAverage
+
+The error variance issue described above can be avoided by simply not caching the sum and
+calculating it from scratch, every time it is requested. This is what NoSumMovingAverage does.
+
+### SumTreeMovingAverage
+
+A sum is the result of a applying the binary addition operation to a set of operands, meaning that it can be represented as a tree.
+
+For example
+`21 = 1 + 2 + 3 + 4 + 5 + 6 = (((1 + 2) + (3 + 4)) + ((5 + 6)))`
+can be represented as this tree
+```text
+          21
+         /  \
+        /    \
+      10      11
+     /  \      \
+    /    \      \
+   3      7      11
+  / \    / \    /  \
+ 1   2  3   4  5    6
+```
+
+### Summary (no pun intended)
 
 | Implementation         | Add sample | Get average | Caveat |
 |------------------------|------------|-------------|---------|
+| SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
 | NoSumMovingAverage     | O(1)       | O(n)        |  |
 | SumTreeMovingAverage   | O(log(n))  | O(1)        |  |
-| SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
 
 `n` in the above chart refers to the sample size of the moving average window.
 
