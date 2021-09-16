@@ -56,10 +56,19 @@ variance of the signed error, however increases with the number of samples added
 [random walk](https://stats.stackexchange.com/questions/159650/why-does-the-variance-of-the-random-walk-increase).
 
 The magnitude of the error variance depends on many factors, including moving window size, average
-sample magnitude and distribution. Below is a visualization of how the error variance grows with
-the number of samples, for a typical window and set of samples.
+sample magnitude and distribution. Below is a visualization of how the absolute difference in
+average value between SingleSumMovingAverage and NoSumMovingAverage (which does not suffer from
+accumulated rounding errors) grows with the number of samples, for a typical window and set of
+samples.
 
-TODO: Graph
+`Sample window size: 10`
+
+`Sample distribution: Uniform in range [-100.0, 100.0]`
+
+`Test runs: 100`
+
+![Difference between SingleSumMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/single_sum_diff.png)
+
 
 *Note that both axes of the graph are logarithmic.*
 
@@ -68,7 +77,7 @@ TODO: Graph
    approach. Such samples include all integer types and
    [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html), which is backed by integer
    types.
- - When performance is more important than floating point exactness.
+ - When performance is more important than numerical accuracy.
 
 ### NoSumMovingAverage
 
@@ -77,10 +86,14 @@ calculating it from scratch, at `O(N)` time complexity, every time it is request
 NoSumMovingAverage does.
 
 **When to use**
- - When the sample window size is so small that the summation cost is negligable.
+ - When the sample window size is so small that the samples summation cost is negligable.
  - When new samples are written significantly more often than the average value is read.
 
 ### SumTreeMovingAverage
+
+There is a way of avoiding the accumulated floating point rounding errors, without having to
+re-calculate the whole sum every time the average value is requested. The downside though, is that
+it involves both binary trees and math:
 
 A sum is the result of applying the binary and
 [associative](https://en.wikipedia.org/wiki/Associative_property)
@@ -130,7 +143,11 @@ is what keeps the floating point rounding error from accumulating.
 
 *Author's note:* If anyone has the brains and will to prove this formally, they are most welcome to
 submit a [PR](https://github.com/oskargustafsson/moving_average/pulls). In the mean time, there is a
-unit test that empirically proves that the rounding error does not accumulate.
+unit test that empirically proves that the rounding error does not accumulate. Part of that test's
+output data is visualized in the graph below, showing no accumulated rounding errors when compared
+with NoSumMovingAverage.
+
+![Difference between SumTreeMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/sum_tree_diff.png)
 
 **When to use**
  - In most cases where floating point data is involved, unless writes are much more common than

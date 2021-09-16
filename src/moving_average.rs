@@ -1,9 +1,14 @@
-/// The simple moving average is defined as `sum(window(samples, N)) / length(window(samples, N))`.
-/// Here `samples` is a possibly infinite series of samples. The `window` function extracts the last
-/// `N` samples.
+/// This trait provides an common interface for algorithms that can calculate a simple moving
+/// average.
 ///
-/// For the purposes of this library, there is no point in keeping samples outside the sample window
-/// around, so they are discarded when newer samples push them out of the window.
+/// In this crate, a simple moving average is defined as `sum(window(samples, N)) / length(window(samples, N))`.
+/// Here `samples` is a possibly infinite series of samples. The `window` function extracts the last
+/// `N` of those samples.
+///
+/// *Implementation detail:* For the purposes of this library, there is no point in keeping samples
+/// outside the sample window around, so they are discarded when newer samples push them out of the
+/// window. This allows the implementations to have constant memory requirements and be stack
+/// allocated.
 ///
 /// Terminology:
 ///  - Sample: A data point, a value.
