@@ -367,69 +367,78 @@ mod tests {
 		}
 	}
 
-	// #[test]
-	// fn f32_samples_random() {
-	// 	// Assert that the error does not grow too much with the number of added samples
+	#[test]
+	fn f32_random_samples_max_algorithm_diffs() {
+		use rand::{distributions::Uniform, rngs::SmallRng, Rng, SeedableRng};
 
-	// 	use rand::distributions::Uniform;
-	// 	// TODO: Make sure this is just a dev-dependency
-	// 	use rand::rngs::SmallRng;
-	// 	use rand::{Rng, SeedableRng};
+		const WINDOW_SIZE: usize = 10;
 
-	// 	fn get_exact_average(values: &[f32], at_end_idx: usize, window_size: usize) -> f32 {
-	// 		let sum: f32 = values[at_end_idx - window_size..at_end_idx].iter().sum();
-	// 		sum / window_size as f32
-	// 	}
+		const VALUE_RANGES: [(usize, usize); 6] = [
+			(0, 10),
+			(10, 100),
+			(100, 1000),
+			(1000, 10000),
+			(10000, 100000),
+			(100000, 1000000),
+		];
 
-	// 	let window_size = 10;
+		let seeds: Vec<u64> = SmallRng::seed_from_u64(0xCAFEBABE)
+			.sample_iter(&Uniform::from(0..u64::MAX))
+			.take(100)
+			.collect();
 
-	// 	let value_ranges = [
-	// 		(0, 10),
-	// 		(10, 100),
-	// 		(100, 1000),
-	// 		(1000, 10000),
-	// 		(10000, 100000),
-	// 		(100000, 1000000),
-	// 	];
+		let averages_array_array: Vec<[[f32; 3]; VALUE_RANGES.len()]> = seeds
+			.iter()
+			.map(|seed| {
+				let random_values: Vec<f32> = SmallRng::seed_from_u64(*seed)
+					.sample_iter(&Uniform::from(-100.0..100.0))
+					.take(1000000)
+					.collect();
 
-	// 	let seeds: Vec<u64> = SmallRng::seed_from_u64(0xCAFEBABE)
-	// 		.sample_iter(&Uniform::from(0..u64::MAX))
-	// 		.take(10)
-	// 		.collect();
+				let mut single_sum_ma = SingleSumMovingAverage::<_, f32, WINDOW_SIZE>::new();
+				let mut sum_tree_ma = SumTreeMovingAverage::<_, f32, WINDOW_SIZE>::new();
+				let mut no_sum_ma = NoSumMovingAverage::<_, f32, WINDOW_SIZE>::new();
 
-	// 	let errors_array: Vec<[f32; 6]> = seeds
-	// 		.iter()
-	// 		.map(|seed| {
-	// 			let random_values: Vec<f32> = SmallRng::seed_from_u64(*seed)
-	// 				.sample_iter(&Uniform::from(-10.0..10.0))
-	// 				.take(1000000)
-	// 				.collect();
+				VALUE_RANGES.map(|value_range| {
+					for random_value in &random_values[value_range.0..value_range.1] {
+						single_sum_ma.add_sample(*random_value);
+						sum_tree_ma.add_sample(*random_value);
+						no_sum_ma.add_sample(*random_value);
+					}
+					[
+						single_sum_ma.get_average_sample(),
+						sum_tree_ma.get_average_sample(),
+						no_sum_ma.get_average_sample(),
+					]
+				})
+			})
+			.collect();
 
-	// 			let mut ma = SumTreeMovingAverage::<f32, _>::new(window_size);
+		let mut maximum_absolute_diffs = [[0.0f32; VALUE_RANGES.len()]; 2];
 
-	// 			value_ranges.map(|value_range| {
-	// 				for random_value in &random_values[value_range.0..value_range.1] {
-	// 					ma.add_sample(*random_value);
-	// 				}
-	// 				let exact_average =
-	// 					get_exact_average(&random_values, value_range.1, window_size);
-	// 				ma.get_average() - exact_average
-	// 			})
-	// 		})
-	// 		.collect();
+		for averages_array in averages_array_array {
+			for (idx, averages) in averages_array.iter().enumerate() {
+				for i in 0..2 {
+					let abs_diff = (averages[i] - averages[2]).abs();
+					if maximum_absolute_diffs[i][idx] < abs_diff {
+						maximum_absolute_diffs[i][idx] = abs_diff;
+					}
+				}
+			}
+		}
 
-	// 	dbg!(&errors_array);
+		let single_sum_maximum_absolute_diff = *maximum_absolute_diffs[0]
+			.iter()
+			.max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
+			.unwrap();
 
-	// 	let mut summed_errors = vec![0.0; value_ranges.len()];
+		assert!(single_sum_maximum_absolute_diff < 0.002);
 
-	// 	for errors in errors_array {
-	// 		for (idx, error) in errors.iter().enumerate() {
-	// 			summed_errors[idx] += error;
-	// 		}
-	// 	}
+		let sum_tree_maximum_absolute_diff = *maximum_absolute_diffs[1]
+			.iter()
+			.max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
+			.unwrap();
 
-	// 	dbg!(summed_errors);
-
-	// 	assert!(false);
-	// }
+		assert!(sum_tree_maximum_absolute_diff < 0.000005);
+	}
 }
