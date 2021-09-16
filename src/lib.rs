@@ -75,32 +75,47 @@ calculating it from scratch, every time it is requested. This is what NoSumMovin
 
 ### SumTreeMovingAverage
 
-A sum is the result of a applying the binary addition operation to a set of operands, meaning that it can be represented as a tree.
+A sum is the result of a applying the binary addition operation to a set of operands, meaning that
+it can be represented as a binary tree of sums.
 
 For example
 `21 = 1 + 2 + 3 + 4 + 5 + 6 = (((1 + 2) + (3 + 4)) + ((5 + 6)))`
 can be represented as this tree
 ```text
-          21
-         /  \
-        /    \
-      10      11
-     /  \      \
-    /    \      \
-   3      7      11
-  / \    / \    /  \
- 1   2  3   4  5    6
+.           21
+.          /  \
+.         /    \
+.       10      11
+.      /  \      \
+.     /    \      \
+.    3      7      11
+.   / \    / \    /  \
+.  1   2  3   4  5    6
 ```
+
+If one of the leaf nodes (i.e. our samples) were to change, only the nodes comprising the direct
+path between the leaf and the root need to be re-calculated, leading to log(N) calculations, N being
+the window size. This is exactly what happens when a sample is added; the oldest sample gets
+replaced with the new sample and sum tree leaf node corresponding to the oldest sample is updated
+with the new sample value.
+
+One existing leaf node (i.e. sample value) is always re-read when updating that leaf node's
+neighbour, meaning that after N samples have been added, all the leaf nodes have been re-read. This
+is what keeps the floating point rounding error from accumulating.
+
+*Author's note:* If anyone has the brains and will to prove this formally, they are most welcome to
+submit a [PR](https://github.com/oskargustafsson/moving_average/pulls). In the mean time, there is a
+unit test that empirically proves that the rounding error does not accumulate.
 
 ### Summary (no pun intended)
 
 | Implementation         | Add sample | Get average | Caveat |
 |------------------------|------------|-------------|---------|
 | SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
-| NoSumMovingAverage     | O(1)       | O(n)        |  |
-| SumTreeMovingAverage   | O(log(n))  | O(1)        |  |
+| NoSumMovingAverage     | O(1)       | O(N)        |  |
+| SumTreeMovingAverage   | O(log(N))  | O(1)        |  |
 
-`n` in the above chart refers to the sample size of the moving average window.
+`N` in the above chart refers to the sample size of the moving average window.
 
 */
 
