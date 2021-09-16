@@ -75,27 +75,45 @@ calculating it from scratch, every time it is requested. This is what NoSumMovin
 
 ### SumTreeMovingAverage
 
-A sum is the result of a applying the binary addition operation to a set of operands, meaning that
-it can be represented as a binary tree of sums.
+A sum is the result of applying the binary and
+[associative](https://en.wikipedia.org/wiki/Associative_property)
+addition operation to a set of operands, which means that it can be represented as a binary tree of
+sums.
 
 For example
-`21 = 1 + 2 + 3 + 4 + 5 + 6 = (((1 + 2) + (3 + 4)) + ((5 + 6)))`
-can be represented as this tree
+
+`(1) + (2) + (3) + (4) + (5) + (6)` =
+
+`(1 + 2) + (3 + 4) + (5 + 6)` =
+
+`(3) + (7) + (11)` =
+
+`(3 + 7) + (11)` =
+
+`(10) + (11)` =
+
+`(10 + 11)` =
+
+`(21)`
+
+can be represented as the following tree.
 ```text
-.           21
-.          /  \
-.         /    \
-.       10      11
-.      /  \      \
-.     /    \      \
-.    3      7      11
-.   / \    / \    /  \
-.  1   2  3   4  5    6
+# Note to self: Each line in the ASCII art below starts with a "Zero width non-joiner" to stop
+# rustfmt from converting the subsequent spaces to tabs.
+‌           21
+‌          /  \
+‌         /    \
+‌       10      11
+‌      /  \      \
+‌     /    \      \
+‌    3      7      11
+‌   / \    / \    /  \
+‌  1   2  3   4  5    6
 ```
 
 If one of the leaf nodes (i.e. our samples) were to change, only the nodes comprising the direct
-path between the leaf and the root need to be re-calculated, leading to log(N) calculations, N being
-the window size. This is exactly what happens when a sample is added; the oldest sample gets
+path between that leaf and the root need to be re-calculated, leading to `log(N)` calculations, `N`
+being the window size. This is exactly what happens when a sample is added; the oldest sample gets
 replaced with the new sample and sum tree leaf node corresponding to the oldest sample is updated
 with the new sample value.
 
@@ -109,11 +127,11 @@ unit test that empirically proves that the rounding error does not accumulate.
 
 ### Summary (no pun intended)
 
-| Implementation         | Add sample | Get average | Caveat |
-|------------------------|------------|-------------|---------|
-| SingleSumMovingAverage | O(1)       | O(1)        | May accumulate floating point rounding errors. |
-| NoSumMovingAverage     | O(1)       | O(N)        |  |
-| SumTreeMovingAverage   | O(log(N))  | O(1)        |  |
+| Implementation         | Add sample   | Get average   | Caveat |
+|------------------------|--------------|---------------|--------|
+| SingleSumMovingAverage | `O(1)`       | `O(1)`        | May accumulate floating point rounding errors. |
+| NoSumMovingAverage     | `O(1)`       | `O(N)`        |  |
+| SumTreeMovingAverage   | `O(log(N))`  | `O(1)`        |  |
 
 `N` in the above chart refers to the sample size of the moving average window.
 
