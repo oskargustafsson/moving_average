@@ -2,6 +2,21 @@
 name = "moving_average"
 version = "0.1.0"
 edition = "2018"
+authors = ["Oskar Gustafsson <oskargustafsson88@gmail.com>"]
+description = "Library of moving average algorithms"
+documentation = "https://docs.rs/moving_average"
+repository = "https://github.com/oskargustafsson/moving_average"
+readme = "README.md"
+categories = ["mathematics", "science", "finance"]
+keywords = ["math"]
+license = "BSD-3-Clause"
+
+[lib]
+name = "moving_average"
+path = "src/lib.rs"
+
+[badges]
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 num-traits = "0.2.14"
