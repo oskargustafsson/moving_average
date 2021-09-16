@@ -3,8 +3,8 @@ This crate provides several algorithms for calculating
 [simple moving averages](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
 
 All variants implement the MovingAverage trait, which provides a unified iterface. The interface
-is generic over sample type, meaning that any type that supports addition, subtraction and division
-by a scalar can be averaged. This includes most primitive numeric types
+is generic over sample type, meaning that any type that supports addition and division by a scalar
+can be averaged. This includes most primitive numeric types
 ([f32](https://doc.rust-lang.org/std/primitive.f32.html),
 [u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
 [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
