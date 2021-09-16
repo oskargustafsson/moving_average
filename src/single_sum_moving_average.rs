@@ -8,26 +8,26 @@ use std::{
 
 use super::MovingAverage;
 
-pub struct SingleSumMovingAverage<Sample, Divisor, const MAX_NUM_SAMPLES: usize> {
+pub struct SingleSumMovingAverage<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: VecDeque<Sample>,
 	sum: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Sample, Divisor, const MAX_NUM_SAMPLES: usize> MovingAverage<Sample, Divisor>
-	for SingleSumMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
+impl<Sample, Divisor, const WINDOW_SIZE: usize> MovingAverage<Sample, Divisor>
+	for SingleSumMovingAverage<Sample, Divisor, WINDOW_SIZE>
 where
 	Sample: Copy + AddAssign + SubAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {
-		if MAX_NUM_SAMPLES == 0 {
+		if WINDOW_SIZE == 0 {
 			return;
 		}
 
 		self.sum += new_sample;
 
-		if self.samples.len() == MAX_NUM_SAMPLES {
+		if self.samples.len() == WINDOW_SIZE {
 			self.sum -= self.samples.pop_back().unwrap_or(self.sum);
 		}
 
@@ -63,26 +63,30 @@ where
 		self.samples.make_contiguous();
 		self.samples.as_slices().0
 	}
+
+	fn get_sample_window_size(&self) -> usize {
+		WINDOW_SIZE
+	}
 }
 
-impl<Sample: Zero, Divisor, const MAX_NUM_SAMPLES: usize>
-	SingleSumMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
+impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize>
+	SingleSumMovingAverage<Sample, Divisor, WINDOW_SIZE>
 {
 	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
+			samples: VecDeque::with_capacity(WINDOW_SIZE),
 			sum: Sample::zero(),
 			_marker: PhantomData,
 		}
 	}
 }
 
-impl<Sample, Divisor, const MAX_NUM_SAMPLES: usize>
-	SingleSumMovingAverage<Sample, Divisor, MAX_NUM_SAMPLES>
+impl<Sample, Divisor, const WINDOW_SIZE: usize>
+	SingleSumMovingAverage<Sample, Divisor, WINDOW_SIZE>
 {
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
+			samples: VecDeque::with_capacity(WINDOW_SIZE),
 			sum: zero,
 			_marker: PhantomData,
 		}

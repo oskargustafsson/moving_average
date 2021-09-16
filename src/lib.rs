@@ -154,12 +154,12 @@ mod tests {
 
 	macro_rules! get_ma_impls {
 		(
-			$divisor_type:ty, $max_num_samples:expr, $ctor:ident $(, $zero:expr)?
+			$divisor_type:ty, $window_size:expr, $ctor:ident $(, $zero:expr)?
 		) => {{
 			let ma_impls: [Box<dyn MovingAverage<_, $divisor_type>>; 3] = [
-				Box::new(SingleSumMovingAverage::<_, _, $max_num_samples>::$ctor($($zero ,)?)),
-				Box::new(SumTreeMovingAverage::<_, _, $max_num_samples>::$ctor($($zero ,)?)),
-				Box::new(NoSumMovingAverage::<_, _, $max_num_samples>::$ctor($($zero ,)?)),
+				Box::new(SingleSumMovingAverage::<_, _, $window_size>::$ctor($($zero ,)?)),
+				Box::new(SumTreeMovingAverage::<_, _, $window_size>::$ctor($($zero ,)?)),
+				Box::new(NoSumMovingAverage::<_, _, $window_size>::$ctor($($zero ,)?)),
 			];
 			ma_impls
 		}};
@@ -183,7 +183,7 @@ mod tests {
 			assert_eq!(ma.get_average_sample(), 5.0);
 			assert_eq!(ma.get_num_samples(), 3);
 
-			// Here we reach max_num_samples and start to pop old samples
+			// Here we reach window_size and start to pop old samples
 
 			ma.add_sample(7.0);
 			assert_eq!(ma.get_average_sample(), 6.0);

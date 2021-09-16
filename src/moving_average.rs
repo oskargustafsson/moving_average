@@ -6,7 +6,7 @@
 /// around, so they are discarded when newer samples push them out of the window.
 ///
 /// Terminology:
-///  - Sample: A data point.
+///  - Sample: A data point, a value.
 ///  - Sample window: The subset of all samples used for average calculations.
 pub trait MovingAverage<Sample, Divisor = Sample> {
 	/// Adds a sample to the series of samples. If the sample window is full, this will cause the
@@ -22,6 +22,10 @@ pub trait MovingAverage<Sample, Divisor = Sample> {
 	/// Returns a reference to a slice, containing all samples in the sample window.
 	fn get_samples(&mut self) -> &[Sample];
 
-	/// Returns the total number of samples in the sample window.
+	/// Returns the total number of samples currently in the in the sample window. This value never
+	/// exceeds the sample window size.
 	fn get_num_samples(&self) -> usize;
+
+	/// Returns the maximum size of the sample window.
+	fn get_sample_window_size(&self) -> usize;
 }
