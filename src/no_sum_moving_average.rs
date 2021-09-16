@@ -8,24 +8,24 @@ use std::{
 
 use super::MovingAverage;
 
-pub struct NoSumMovingAverage<Divisor, Sample> {
+pub struct NoSumMovingAverage<Divisor, Sample, const MAX_NUM_SAMPLES: usize> {
 	samples: VecDeque<Sample>,
-	max_num_samples: usize,
 	zero: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Divisor, Sample> MovingAverage<Divisor, Sample> for NoSumMovingAverage<Divisor, Sample>
+impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize> MovingAverage<Divisor, Sample>
+	for NoSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
 where
 	Sample: Copy + AddAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {
-		if self.max_num_samples == 0 {
+		if MAX_NUM_SAMPLES == 0 {
 			return;
 		}
 
-		if self.samples.len() == self.max_num_samples {
+		if self.samples.len() == MAX_NUM_SAMPLES {
 			self.samples.pop_back();
 		}
 
@@ -72,22 +72,24 @@ where
 	}
 }
 
-impl<Divisor, Sample: Zero> NoSumMovingAverage<Divisor, Sample> {
-	pub fn new(max_num_samples: usize) -> Self {
+impl<Divisor, Sample: Zero, const MAX_NUM_SAMPLES: usize>
+	NoSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+{
+	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(max_num_samples),
-			max_num_samples,
+			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
 			zero: Sample::zero(),
 			_marker: PhantomData,
 		}
 	}
 }
 
-impl<Divisor, Sample> NoSumMovingAverage<Divisor, Sample> {
-	pub fn from_zero(zero: Sample, max_num_samples: usize) -> Self {
+impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize>
+	NoSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+{
+	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(max_num_samples),
-			max_num_samples,
+			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
 			zero,
 			_marker: PhantomData,
 		}

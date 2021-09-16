@@ -10,24 +10,24 @@ use super::{sum_tree::SumTree, MovingAverage};
 
 type SumTreeNodeIdx = usize;
 
-pub struct SumTreeMovingAverage<Divisor, Sample> {
+pub struct SumTreeMovingAverage<Divisor, Sample, const MAX_NUM_SAMPLES: usize> {
 	samples: VecDeque<SumTreeNodeIdx>,
-	max_num_samples: usize,
 	sum_tree: SumTree<Sample>,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Divisor, Sample> MovingAverage<Divisor, Sample> for SumTreeMovingAverage<Divisor, Sample>
+impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize> MovingAverage<Divisor, Sample>
+	for SumTreeMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
 where
 	Sample: Copy + Add<Output = Sample> + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {
-		if self.max_num_samples == 0 {
+		if MAX_NUM_SAMPLES == 0 {
 			return;
 		}
 
-		let tree_node_idx = if self.samples.len() < self.max_num_samples {
+		let tree_node_idx = if self.samples.len() < MAX_NUM_SAMPLES {
 			self.samples.len()
 		} else {
 			self.samples.pop_back().unwrap()
@@ -70,23 +70,25 @@ where
 	}
 }
 
-impl<Divisor, Sample: Zero + Copy> SumTreeMovingAverage<Divisor, Sample> {
-	pub fn new(max_num_samples: usize) -> Self {
+impl<Divisor, Sample: Zero + Copy, const MAX_NUM_SAMPLES: usize>
+	SumTreeMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+{
+	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(max_num_samples),
-			max_num_samples,
-			sum_tree: SumTree::new(Sample::zero(), max_num_samples),
+			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
+			sum_tree: SumTree::new(Sample::zero(), MAX_NUM_SAMPLES),
 			_marker: PhantomData,
 		}
 	}
 }
 
-impl<Divisor, Sample: Copy> SumTreeMovingAverage<Divisor, Sample> {
-	pub fn from_zero(zero: Sample, max_num_samples: usize) -> Self {
+impl<Divisor, Sample: Copy, const MAX_NUM_SAMPLES: usize>
+	SumTreeMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+{
+	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(max_num_samples),
-			max_num_samples,
-			sum_tree: SumTree::new(zero, max_num_samples),
+			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
+			sum_tree: SumTree::new(zero, MAX_NUM_SAMPLES),
 			_marker: PhantomData,
 		}
 	}

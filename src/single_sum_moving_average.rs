@@ -8,26 +8,26 @@ use std::{
 
 use super::MovingAverage;
 
-pub struct SingleSumMovingAverage<Divisor, Sample> {
+pub struct SingleSumMovingAverage<Divisor, Sample, const MAX_NUM_SAMPLES: usize> {
 	samples: VecDeque<Sample>,
-	max_num_samples: usize,
 	sum: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Divisor, Sample> MovingAverage<Divisor, Sample> for SingleSumMovingAverage<Divisor, Sample>
+impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize> MovingAverage<Divisor, Sample>
+	for SingleSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
 where
 	Sample: Copy + AddAssign + SubAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
 {
 	fn add_sample(&mut self, new_sample: Sample) {
-		if self.max_num_samples == 0 {
+		if MAX_NUM_SAMPLES == 0 {
 			return;
 		}
 
 		self.sum += new_sample;
 
-		if self.samples.len() == self.max_num_samples {
+		if self.samples.len() == MAX_NUM_SAMPLES {
 			self.sum -= self.samples.pop_back().unwrap_or(self.sum);
 		}
 
@@ -65,22 +65,24 @@ where
 	}
 }
 
-impl<Divisor, Sample: Zero> SingleSumMovingAverage<Divisor, Sample> {
-	pub fn new(max_num_samples: usize) -> Self {
+impl<Divisor, Sample: Zero, const MAX_NUM_SAMPLES: usize>
+	SingleSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+{
+	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(max_num_samples),
-			max_num_samples,
+			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
 			sum: Sample::zero(),
 			_marker: PhantomData,
 		}
 	}
 }
 
-impl<Divisor, Sample> SingleSumMovingAverage<Divisor, Sample> {
-	pub fn from_zero(zero: Sample, max_num_samples: usize) -> Self {
+impl<Divisor, Sample, const MAX_NUM_SAMPLES: usize>
+	SingleSumMovingAverage<Divisor, Sample, MAX_NUM_SAMPLES>
+{
+	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(max_num_samples),
-			max_num_samples,
+			samples: VecDeque::with_capacity(MAX_NUM_SAMPLES),
 			sum: zero,
 			_marker: PhantomData,
 		}
