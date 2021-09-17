@@ -9,14 +9,11 @@ repository = "https://github.com/oskargustafsson/moving_average"
 readme = "README.md"
 categories = ["mathematics", "science", "finance"]
 keywords = ["math"]
-license = "BSD-3-Clause"
+license = "MIT"
 
 [lib]
 name = "simple_moving_average"
 path = "src/lib.rs"
-
-[badges]
-maintenance = { status = "actively-developed" }
 
 [dependencies]
 num-traits = "0.2.14"
