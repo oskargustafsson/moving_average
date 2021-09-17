@@ -2,7 +2,7 @@
 This crate provides several algorithms for calculating
 [simple moving averages](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
 
-All variants implement the MovingAverage trait, which provides a unified iterface. The interface
+All variants implement the [MovingAverage] trait, which provides a unified iterface. The interface
 is generic over sample type, meaning that any type that supports addition and division by a scalar
 can be averaged. This includes most primitive numeric types
 ([f32](https://doc.rust-lang.org/std/primitive.f32.html),
@@ -13,18 +13,29 @@ many third party math library ([nalgebra](https://docs.rs/nalgebra/),
 
 ## Examples
 
-*Floating point numbers*
-```rust
+*Scalars*
+```
 # use moving_average::{MovingAverage, SumTreeMovingAverage};
-let mut ma = SumTreeMovingAverage::<_, f32, 2>::new(); // Window size = 2
+let mut ma = SumTreeMovingAverage::<_, f32, 2>::new(); // Sample window size = 2
 ma.add_sample(1.0);
 ma.add_sample(2.0);
 ma.add_sample(3.0);
-assert_eq!(ma.get_average(), 2.5); // (2 + 3) / 2 = 2.5
+assert_eq!(ma.get_average(), 2.5); // = (2 + 3) / 2
+```
+
+*Vectors*
+```
+# use moving_average::{MovingAverage, NoSumMovingAverage};
+# use std::time::{Duration, Instant};
+# use nalgebra::Vector3;
+let mut ma = NoSumMovingAverage::<_, f64, 2>::new();
+ma.add_sample(Vector3::new(1.0, 2.0, 3.0));
+ma.add_sample(Vector3::new(-4.0, -2.0, -1.0));
+assert_eq!(ma.get_average(), Vector3::new(-1.5, 0.0, 1.0));
 ```
 
 *Durations*
-```rust
+```
 # use moving_average::{MovingAverage, SingleSumMovingAverage};
 # use std::time::{Duration, Instant};
 let mut ma = SingleSumMovingAverage::<_, _, 10>::from_zero(Duration::ZERO);
@@ -41,59 +52,53 @@ loop {
 
 One way to achieve good performance when calculating simple moving averages is to cache previous
 calculations, specifically the sum of the samples currently in the sample window. Caching this sum
-has both pros and cons, which is what motivates the three different implementations described below.
-
-### SingleSumMovingAverage
-
-This implementation caches the sum of all samples in the sample window as a single value, leading to
-`O(1)` time complexity for both writing new samples and reading their average. The problem with this
-approach is that most floating point numbers can't be stored exactly, so every time a such a number
-is added to the sum, there is a risk of accumulating a rounding error.
-
-Thankfully, the mean signed rounding error (`summed_average - exact_average`) for floating point
-numbers is 0, as the numbers are on average rounded up as much as they are rounded down. The
-variance of the signed error, however increases with the number of samples added, analogously to a
-[random walk](https://stats.stackexchange.com/questions/159650/why-does-the-variance-of-the-random-walk-increase).
-
-The magnitude of the error variance depends on many factors, including moving window size, average
-sample magnitude and distribution. Below is a visualization of how the absolute difference in
-average value between SingleSumMovingAverage and NoSumMovingAverage (which does not suffer from
-accumulated rounding errors) grows with the number of samples, for a typical window and set of
-samples.
-
-`Sample window size: 10`
-
-`Sample distribution: Uniform in range [-100.0, 100.0]`
-
-`Test runs: 100`
-
-![Difference between SingleSumMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/single_sum_diff.png)
-
-
-*Note that both axes of the graph are logarithmic.*
-
-**When to use**
- - When samples can be represented exactly in memory, in which case there is no downside to this
-   approach. Such samples include all integer types and
-   [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html), which is backed by integer
-   types.
- - When performance is more important than numerical accuracy.
+has both pros and cons, which is what motivates the three different implementations presented below.
 
 ### NoSumMovingAverage
 
-The error variance issue described above can be avoided by simply not caching the sum and
-calculating it from scratch, at `O(N)` time complexity, every time it is requested. This is what
-NoSumMovingAverage does.
+The most straightforward way of implementing a moving average is to not cache any sum at all, hence
+the name if this implementation. The sum of all samples is calculated from scratch, at `O(N)` time
+complexity (`N` being the sample window size), every time the average is requested.
 
 **When to use**
  - When the sample window size is so small that the samples summation cost is negligable.
  - When new samples are written significantly more often than the average value is read.
 
+### SingleSumMovingAverage
+
+This implementation caches the sum of all samples in the sample window as a single value, leading to
+`O(1)` time complexity for both writing new samples and reading their average. A problem with this
+approach is that most floating point numbers can't be stored exactly, so every time a such a number
+is added to the cached sum, there is a risk of accumulating a rounding error.
+
+The magnitude of the accumulated error depends on many factors, including moving window size and
+sample distribution. Below is a visualization of how the absolute difference in average value
+between [SingleSumMovingAverage] and [NoSumMovingAverage] (which does not suffer from accumulated
+rounding errors) grows with the number of samples, for a typical window size and set of samples.
+
+`Sample type: f32`, `Sample window size: 10`,
+`Sample distribution: Uniform[-100, 100]`
+
+![Difference between SingleSumMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/single_sum_diff.png)
+
+*Note:* Both axes of the graph are logarithmic. The Y axis values represent the maxiumum difference
+found over 100 test runs.
+
+One way to reduce the error is to use wider type, e.g. `f64` instead of `f32`. The absolute error is
+also less prominent when the samples lie near the interval `[-1, 1]`, as that is where floating
+point precision is at its highest.
+
+**When to use**
+ - When sample values can be represented exactly in memory, in which case there is no downside to
+   this approach. This is true for all [primitive integer](https://doc.rust-lang.org/book/ch03-02-data-types.html#integer-types)
+   types and [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html).
+ - When performance is more important than numerical accuracy.
+
 ### SumTreeMovingAverage
 
 There is a way of avoiding the accumulated floating point rounding errors, without having to
-re-calculate the whole sum every time the average value is requested. The downside though, is that
-it involves both binary trees and math:
+re-calculate the whole samples sum every time the average value is requested. The downside though,
+is that it involves both math and binary trees:
 
 A sum is the result of applying the binary and
 [associative](https://en.wikipedia.org/wiki/Associative_property)
@@ -131,7 +136,7 @@ can be represented as the following tree.
 ‌  1   2  3   4  5    6
 ```
 
-If one of the leaf nodes (i.e. our samples) were to change, only the nodes comprising the direct
+If one of the leaf nodes (i.e. samples) were to change, only the nodes comprising the direct
 path between that leaf and the root need to be re-calculated, leading to `log(N)` calculations, `N`
 being the window size. This is exactly what happens when a sample is added; the oldest sample gets
 replaced with the new sample and sum tree leaf node corresponding to the oldest sample is updated
@@ -145,7 +150,7 @@ is what keeps the floating point rounding error from accumulating.
 submit a [PR](https://github.com/oskargustafsson/moving_average/pulls). In the mean time, there is a
 unit test that empirically proves that the rounding error does not accumulate. Part of that test's
 output data is visualized in the graph below, showing no accumulated rounding errors when compared
-with NoSumMovingAverage.
+with [NoSumMovingAverage].
 
 ![Difference between SumTreeMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/sum_tree_diff.png)
 
@@ -155,13 +160,15 @@ with NoSumMovingAverage.
 
 ### Summary (no pun intended)
 
-| Implementation         | Add sample   | Get average   |
-|------------------------|--------------|---------------|
-| SingleSumMovingAverage | `O(1)`       | `O(1)`        |
-| NoSumMovingAverage     | `O(1)`       | `O(N)`        |
-| SumTreeMovingAverage   | `O(log(N))`  | `O(1)`        |
+| Implementation           | Add sample  | Get average | Caveat                          |
+|--------------------------|-------------|-------------|---------------------------------|
+| [NoSumMovingAverage]     | `O(1)`      | `O(N)`      | -                               |
+| [SingleSumMovingAverage] | `O(1)`      | `O(1)`      | Accumulates FP rounding errors. |
+| [SumTreeMovingAverage]   | `O(log(N))` | `O(1)`      | -                               |
 
 `N` refers to the size of the sample window.
+
+All implementations have `O(N)` space complexity.
 
 */
 
@@ -390,7 +397,6 @@ mod tests {
 		use rayon::prelude::*;
 
 		const WINDOW_SIZE: usize = 10;
-
 		const VALUE_RANGES: [(usize, usize); 6] = [
 			(0, 10),
 			(10, 100),
@@ -405,7 +411,7 @@ mod tests {
 			.take(100)
 			.collect();
 
-		let averages_array_array: Vec<[[f32; 3]; VALUE_RANGES.len()]> = seeds
+		let averages_array_vec: Vec<[[f32; 3]; VALUE_RANGES.len()]> = seeds
 			.par_iter()
 			.map(|seed| {
 				let random_values: Vec<f32> = SmallRng::seed_from_u64(*seed)
@@ -434,7 +440,7 @@ mod tests {
 
 		let mut maximum_absolute_diffs_array = [[0.0f32; VALUE_RANGES.len()]; 2];
 
-		for averages_array in averages_array_array {
+		for averages_array in averages_array_vec {
 			for (idx, averages) in averages_array.iter().enumerate() {
 				for i in 0..2 {
 					let abs_diff = (averages[i] - averages[2]).abs();

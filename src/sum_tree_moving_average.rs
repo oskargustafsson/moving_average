@@ -77,6 +77,12 @@ where
 impl<Sample: Zero + Copy, Divisor, const WINDOW_SIZE: usize>
 	SumTreeMovingAverage<Sample, Divisor, WINDOW_SIZE>
 {
+	/// Constructs a new [SumTreeMovingAverage] with window size `WINDOW_SIZE`. This constructor is
+	/// only available for `Sample` types that implement [num_traits::Zero]. If the `Sample` type
+	/// does not, use the [from_zero](SumTreeMovingAverage::from_zero) constructor instead.
+	///
+	/// Note that the `Divisor` type usually cannot be derived by the compiler when using this
+	/// constructor and must be explicitly stated, even if it is the same as the `Sample` type.
 	pub fn new() -> Self {
 		Self {
 			samples: VecDeque::with_capacity(WINDOW_SIZE),
@@ -89,6 +95,9 @@ impl<Sample: Zero + Copy, Divisor, const WINDOW_SIZE: usize>
 impl<Sample: Copy, Divisor, const WINDOW_SIZE: usize>
 	SumTreeMovingAverage<Sample, Divisor, WINDOW_SIZE>
 {
+	/// Constructs a new [SumTreeMovingAverage] with window size `WINDOW_SIZE` from the given
+	/// `zero` sample. If the `Sample` type implements [num_traits::Zero], the
+	/// [new](SumTreeMovingAverage::new) constructor might be preferable to this.
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {
 			samples: VecDeque::with_capacity(WINDOW_SIZE),
