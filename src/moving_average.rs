@@ -19,7 +19,7 @@ pub trait MovingAverage<Sample, Divisor = Sample> {
 	fn add_sample(&mut self, new_sample: Sample);
 
 	/// Returns the simple moving average value of all the samples in the sample window.
-	fn get_average_sample(&self) -> Sample;
+	fn get_average(&self) -> Sample;
 
 	/// Returns the most recently added sample.
 	fn get_most_recent_sample(&self) -> Option<Sample>;

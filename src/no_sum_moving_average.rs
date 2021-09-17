@@ -32,11 +32,7 @@ where
 		self.samples.push_front(new_sample);
 	}
 
-	fn get_num_samples(&self) -> usize {
-		self.samples.len()
-	}
-
-	fn get_average_sample(&self) -> Sample {
+	fn get_average(&self) -> Sample {
 		let num_samples = self.samples.len();
 
 		if num_samples == 0 {
@@ -69,6 +65,10 @@ where
 	fn get_samples(&mut self) -> &[Sample] {
 		self.samples.make_contiguous();
 		self.samples.as_slices().0
+	}
+
+	fn get_num_samples(&self) -> usize {
+		self.samples.len()
 	}
 
 	fn get_sample_window_size(&self) -> usize {

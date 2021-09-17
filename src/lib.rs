@@ -196,37 +196,37 @@ mod tests {
 	#[test]
 	fn f32_samples() {
 		for ma in &mut get_ma_impls!(f32, 3, new) {
-			assert_eq!(ma.get_average_sample(), 0.0);
+			assert_eq!(ma.get_average(), 0.0);
 			assert_eq!(ma.get_num_samples(), 0);
 
 			ma.add_sample(4.0);
-			assert_eq!(ma.get_average_sample(), 4.0);
+			assert_eq!(ma.get_average(), 4.0);
 			assert_eq!(ma.get_num_samples(), 1);
 
 			ma.add_sample(8.0);
-			assert_eq!(ma.get_average_sample(), 6.0);
+			assert_eq!(ma.get_average(), 6.0);
 			assert_eq!(ma.get_num_samples(), 2);
 
 			ma.add_sample(3.0);
-			assert_eq!(ma.get_average_sample(), 5.0);
+			assert_eq!(ma.get_average(), 5.0);
 			assert_eq!(ma.get_num_samples(), 3);
 
 			// Here we reach window_size and start to pop old samples
 
 			ma.add_sample(7.0);
-			assert_eq!(ma.get_average_sample(), 6.0);
+			assert_eq!(ma.get_average(), 6.0);
 			assert_eq!(ma.get_num_samples(), 3);
 
 			ma.add_sample(11.0);
-			assert_eq!(ma.get_average_sample(), 7.0);
+			assert_eq!(ma.get_average(), 7.0);
 			assert_eq!(ma.get_num_samples(), 3);
 
 			ma.add_sample(0.0);
-			assert_eq!(ma.get_average_sample(), 6.0);
+			assert_eq!(ma.get_average(), 6.0);
 			assert_eq!(ma.get_num_samples(), 3);
 
 			ma.add_sample(-23.0);
-			assert_eq!(ma.get_average_sample(), -4.0);
+			assert_eq!(ma.get_average(), -4.0);
 			assert_eq!(ma.get_num_samples(), 3);
 		}
 	}
@@ -234,25 +234,25 @@ mod tests {
 	#[test]
 	fn u32_samples() {
 		for ma in &mut get_ma_impls!(u32, 3, new) {
-			assert_eq!(ma.get_average_sample(), 0);
+			assert_eq!(ma.get_average(), 0);
 
 			ma.add_sample(4);
-			assert_eq!(ma.get_average_sample(), 4);
+			assert_eq!(ma.get_average(), 4);
 
 			ma.add_sample(8);
-			assert_eq!(ma.get_average_sample(), 6);
+			assert_eq!(ma.get_average(), 6);
 
 			ma.add_sample(3);
-			assert_eq!(ma.get_average_sample(), 5);
+			assert_eq!(ma.get_average(), 5);
 
 			ma.add_sample(7);
-			assert_eq!(ma.get_average_sample(), 6);
+			assert_eq!(ma.get_average(), 6);
 
 			ma.add_sample(11);
-			assert_eq!(ma.get_average_sample(), 7);
+			assert_eq!(ma.get_average(), 7);
 
 			ma.add_sample(0);
-			assert_eq!(ma.get_average_sample(), 6);
+			assert_eq!(ma.get_average(), 6);
 		}
 	}
 
@@ -260,19 +260,19 @@ mod tests {
 	fn u32_samples_2() {
 		for ma in &mut get_ma_impls!(u32, 3, new) {
 			ma.add_sample(1);
-			assert_eq!(ma.get_average_sample(), 1);
+			assert_eq!(ma.get_average(), 1);
 
 			ma.add_sample(2);
-			assert_eq!(ma.get_average_sample(), 1);
+			assert_eq!(ma.get_average(), 1);
 
 			ma.add_sample(3);
-			assert_eq!(ma.get_average_sample(), 2);
+			assert_eq!(ma.get_average(), 2);
 
 			ma.add_sample(4);
-			assert_eq!(ma.get_average_sample(), 3);
+			assert_eq!(ma.get_average(), 3);
 
 			ma.add_sample(10);
-			assert_eq!(ma.get_average_sample(), 5);
+			assert_eq!(ma.get_average(), 5);
 		}
 	}
 
@@ -281,22 +281,22 @@ mod tests {
 		use nalgebra::Vector2;
 
 		for ma in &mut get_ma_impls!(f32, 3, new) {
-			assert_eq!(ma.get_average_sample(), Vector2::new(0.0, 0.0));
+			assert_eq!(ma.get_average(), Vector2::new(0.0, 0.0));
 
 			ma.add_sample(Vector2::new(4.0, 8.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(4.0, 8.0));
+			assert_eq!(ma.get_average(), Vector2::new(4.0, 8.0));
 
 			ma.add_sample(Vector2::new(6.0, 0.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(5.0, 4.0));
+			assert_eq!(ma.get_average(), Vector2::new(5.0, 4.0));
 
 			ma.add_sample(Vector2::new(2.0, 10.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(4.0, 6.0));
+			assert_eq!(ma.get_average(), Vector2::new(4.0, 6.0));
 
 			ma.add_sample(Vector2::new(-17.0, 20.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(-3.0, 10.0));
+			assert_eq!(ma.get_average(), Vector2::new(-3.0, 10.0));
 
 			ma.add_sample(Vector2::new(0.0, -21.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(-5.0, 3.0));
+			assert_eq!(ma.get_average(), Vector2::new(-5.0, 3.0));
 		}
 	}
 
@@ -305,22 +305,22 @@ mod tests {
 		use euclid::default::Vector2D;
 
 		for ma in &mut get_ma_impls!(f32, 3, from_zero, Vector2D::zero()) {
-			assert_eq!(ma.get_average_sample(), Vector2D::new(0.0, 0.0));
+			assert_eq!(ma.get_average(), Vector2D::new(0.0, 0.0));
 
 			ma.add_sample(Vector2D::new(4.0, 8.0));
-			assert_eq!(ma.get_average_sample(), Vector2D::new(4.0, 8.0));
+			assert_eq!(ma.get_average(), Vector2D::new(4.0, 8.0));
 
 			ma.add_sample(Vector2D::new(6.0, 0.0));
-			assert_eq!(ma.get_average_sample(), Vector2D::new(5.0, 4.0));
+			assert_eq!(ma.get_average(), Vector2D::new(5.0, 4.0));
 
 			ma.add_sample(Vector2D::new(2.0, 10.0));
-			assert_eq!(ma.get_average_sample(), Vector2D::new(4.0, 6.0));
+			assert_eq!(ma.get_average(), Vector2D::new(4.0, 6.0));
 
 			ma.add_sample(Vector2D::new(-17.0, 20.0));
-			assert_eq!(ma.get_average_sample(), Vector2D::new(-3.0, 10.0));
+			assert_eq!(ma.get_average(), Vector2D::new(-3.0, 10.0));
 
 			ma.add_sample(Vector2D::new(0.0, -21.0));
-			assert_eq!(ma.get_average_sample(), Vector2D::new(-5.0, 3.0));
+			assert_eq!(ma.get_average(), Vector2D::new(-5.0, 3.0));
 		}
 	}
 
@@ -329,22 +329,22 @@ mod tests {
 		use cgmath::Vector2;
 
 		for ma in &mut get_ma_impls!(f32, 3, new) {
-			assert_eq!(ma.get_average_sample(), Vector2::new(0.0, 0.0));
+			assert_eq!(ma.get_average(), Vector2::new(0.0, 0.0));
 
 			ma.add_sample(Vector2::new(4.0, 8.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(4.0, 8.0));
+			assert_eq!(ma.get_average(), Vector2::new(4.0, 8.0));
 
 			ma.add_sample(Vector2::new(6.0, 0.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(5.0, 4.0));
+			assert_eq!(ma.get_average(), Vector2::new(5.0, 4.0));
 
 			ma.add_sample(Vector2::new(2.0, 10.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(4.0, 6.0));
+			assert_eq!(ma.get_average(), Vector2::new(4.0, 6.0));
 
 			ma.add_sample(Vector2::new(-17.0, 20.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(-3.0, 10.0));
+			assert_eq!(ma.get_average(), Vector2::new(-3.0, 10.0));
 
 			ma.add_sample(Vector2::new(0.0, -21.0));
-			assert_eq!(ma.get_average_sample(), Vector2::new(-5.0, 3.0));
+			assert_eq!(ma.get_average(), Vector2::new(-5.0, 3.0));
 		}
 	}
 
@@ -353,33 +353,33 @@ mod tests {
 		use std::time::Duration;
 
 		for ma in &mut get_ma_impls!(u32, 3, from_zero, Duration::ZERO) {
-			assert_eq!(ma.get_average_sample(), Duration::from_secs(0));
+			assert_eq!(ma.get_average(), Duration::from_secs(0));
 
 			ma.add_sample(Duration::from_secs(10));
-			assert_eq!(ma.get_average_sample(), Duration::from_secs(10));
+			assert_eq!(ma.get_average(), Duration::from_secs(10));
 
 			ma.add_sample(Duration::from_secs(20));
-			assert_eq!(ma.get_average_sample(), Duration::from_secs(15));
+			assert_eq!(ma.get_average(), Duration::from_secs(15));
 
 			ma.add_sample(Duration::from_secs(30));
-			assert_eq!(ma.get_average_sample(), Duration::from_secs(20));
+			assert_eq!(ma.get_average(), Duration::from_secs(20));
 
 			ma.add_sample(Duration::from_secs(1));
-			assert_eq!(ma.get_average_sample(), Duration::from_secs(17));
+			assert_eq!(ma.get_average(), Duration::from_secs(17));
 
 			ma.add_sample(Duration::from_secs(32));
-			assert_eq!(ma.get_average_sample(), Duration::from_secs(21));
+			assert_eq!(ma.get_average(), Duration::from_secs(21));
 		}
 	}
 
 	#[test]
 	fn edge_case_zero_sized() {
 		for ma in &mut get_ma_impls!(u32, 0, new) {
-			assert_eq!(ma.get_average_sample(), 0);
+			assert_eq!(ma.get_average(), 0);
 			assert_eq!(ma.get_num_samples(), 0);
 
 			ma.add_sample(16);
-			assert_eq!(ma.get_average_sample(), 0);
+			assert_eq!(ma.get_average(), 0);
 			assert_eq!(ma.get_num_samples(), 0);
 		}
 	}
@@ -423,9 +423,9 @@ mod tests {
 						no_sum_ma.add_sample(*random_value);
 					}
 					[
-						single_sum_ma.get_average_sample(),
-						sum_tree_ma.get_average_sample(),
-						no_sum_ma.get_average_sample(),
+						single_sum_ma.get_average(),
+						sum_tree_ma.get_average(),
+						no_sum_ma.get_average(),
 					]
 				})
 			})

@@ -38,11 +38,7 @@ where
 		self.samples.push_front(tree_node_idx);
 	}
 
-	fn get_num_samples(&self) -> usize {
-		self.samples.len()
-	}
-
-	fn get_average_sample(&self) -> Sample {
+	fn get_average(&self) -> Sample {
 		let num_samples = self.samples.len();
 
 		if num_samples == 0 {
@@ -67,6 +63,10 @@ where
 
 	fn get_samples(&mut self) -> &[Sample] {
 		self.sum_tree.get_leaf_nodes_slice()
+	}
+
+	fn get_num_samples(&self) -> usize {
+		self.samples.len()
 	}
 
 	fn get_sample_window_size(&self) -> usize {
