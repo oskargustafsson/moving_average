@@ -387,6 +387,7 @@ mod tests {
 	#[test]
 	fn f32_random_samples_max_algorithm_diffs() {
 		use rand::{distributions::Uniform, rngs::SmallRng, Rng, SeedableRng};
+		use rayon::prelude::*;
 
 		const WINDOW_SIZE: usize = 10;
 
@@ -405,7 +406,7 @@ mod tests {
 			.collect();
 
 		let averages_array_array: Vec<[[f32; 3]; VALUE_RANGES.len()]> = seeds
-			.iter()
+			.par_iter()
 			.map(|seed| {
 				let random_values: Vec<f32> = SmallRng::seed_from_u64(*seed)
 					.sample_iter(&Uniform::from(-100.0..100.0))
