@@ -173,6 +173,7 @@ with [NoSumSMA].
 
 */
 
+mod common;
 mod no_sum_sma;
 mod single_sum_sma;
 mod sma;

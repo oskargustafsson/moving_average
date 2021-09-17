@@ -1,12 +1,11 @@
+use super::SMA;
+use crate::common::cast_to_divisor_type;
 use num_traits::{FromPrimitive, Zero};
 use std::{
-	any::type_name,
 	collections::VecDeque,
 	marker::{self, PhantomData},
 	ops::{AddAssign, Div, SubAssign},
 };
-
-use super::SMA;
 
 /// An SMA implementation that caches the sum of all samples currently in the sample window as a
 /// single value.
@@ -43,14 +42,7 @@ where
 			return self.sum;
 		}
 
-		let num_samples = Divisor::from_usize(num_samples).unwrap_or_else(|| {
-			panic!(
-				"Failed to create a divisor of type {} from num_samples: usize = {}",
-				type_name::<Divisor>(),
-				num_samples
-			)
-		});
-		self.sum / num_samples
+		self.sum / cast_to_divisor_type(num_samples)
 	}
 
 	fn get_most_recent_sample(&self) -> Option<Sample> {

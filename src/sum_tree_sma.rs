@@ -1,12 +1,11 @@
+use super::{sum_tree::SumTree, SMA};
+use crate::common::cast_to_divisor_type;
 use num_traits::{FromPrimitive, Zero};
 use std::{
-	any::type_name,
 	collections::VecDeque,
 	marker::{self, PhantomData},
 	ops::{Add, Div},
 };
-
-use super::{sum_tree::SumTree, SMA};
 
 type SumTreeNodeIdx = usize;
 
@@ -47,14 +46,7 @@ where
 			return self.sum_tree.get_root_sum();
 		}
 
-		let num_samples = Divisor::from_usize(num_samples).unwrap_or_else(|| {
-			panic!(
-				"Failed to create a divisor of type {} from num_samples: usize = {}",
-				type_name::<Divisor>(),
-				num_samples
-			)
-		});
-		self.sum_tree.get_root_sum() / num_samples
+		self.sum_tree.get_root_sum() / cast_to_divisor_type(num_samples)
 	}
 
 	fn get_most_recent_sample(&self) -> Option<Sample> {
