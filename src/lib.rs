@@ -9,7 +9,7 @@ can be averaged. This includes most primitive numeric types
 [u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
 [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
 many third party math library ([nalgebra](https://docs.rs/nalgebra/),
-[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) types.
+[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) vector and matrix types.
 
 ## Examples
 
@@ -20,7 +20,7 @@ let mut ma = SumTreeMovingAverage::<_, f32, 2>::new(); // Window size = 2
 ma.add_sample(1.0);
 ma.add_sample(2.0);
 ma.add_sample(3.0);
-assert_eq!(ma.get_average_sample(), 2.5); // (2 + 3) / 2 = 2.5
+assert_eq!(ma.get_average(), 2.5); // (2 + 3) / 2 = 2.5
 ```
 
 *Durations*
@@ -32,7 +32,7 @@ loop {
 	let instant = Instant::now();
 	// [ application code ]
 	ma.add_sample(instant.elapsed());
-	dbg!("Average iteration duration: {}", ma.get_average_sample());
+	dbg!("Average iteration duration: {}", ma.get_average());
 	# break;
 }
 ```
@@ -431,31 +431,28 @@ mod tests {
 			})
 			.collect();
 
-		let mut maximum_absolute_diffs = [[0.0f32; VALUE_RANGES.len()]; 2];
+		let mut maximum_absolute_diffs_array = [[0.0f32; VALUE_RANGES.len()]; 2];
 
 		for averages_array in averages_array_array {
 			for (idx, averages) in averages_array.iter().enumerate() {
 				for i in 0..2 {
 					let abs_diff = (averages[i] - averages[2]).abs();
-					if maximum_absolute_diffs[i][idx] < abs_diff {
-						maximum_absolute_diffs[i][idx] = abs_diff;
+					if maximum_absolute_diffs_array[i][idx] < abs_diff {
+						maximum_absolute_diffs_array[i][idx] = abs_diff;
 					}
 				}
 			}
 		}
 
-		let single_sum_maximum_absolute_diff = *maximum_absolute_diffs[0]
-			.iter()
-			.max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
-			.unwrap();
+		let [single_sum_maximum_absolute_diff, sum_tree_maximum_absolute_diff]: [f32; 2] =
+			maximum_absolute_diffs_array.map(|maximum_absolute_diffs| {
+				*maximum_absolute_diffs
+					.iter()
+					.max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
+					.unwrap()
+			});
 
 		assert!(single_sum_maximum_absolute_diff < 0.002);
-
-		let sum_tree_maximum_absolute_diff = *maximum_absolute_diffs[1]
-			.iter()
-			.max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
-			.unwrap();
-
-		assert!(sum_tree_maximum_absolute_diff < 0.000005);
+		assert!(sum_tree_maximum_absolute_diff < 0.000006);
 	}
 }
