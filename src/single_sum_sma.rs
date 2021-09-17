@@ -1,8 +1,7 @@
 use super::SMA;
-use crate::common::cast_to_divisor_type;
+use crate::{common::cast_to_divisor_type, ring_buffer::RingBuffer};
 use num_traits::{FromPrimitive, Zero};
 use std::{
-	collections::VecDeque,
 	marker::{self, PhantomData},
 	ops::{AddAssign, Div, SubAssign},
 };
@@ -10,7 +9,7 @@ use std::{
 /// An SMA implementation that caches the sum of all samples currently in the sample window as a
 /// single value.
 pub struct SingleSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
-	samples: VecDeque<Sample>,
+	samples: RingBuffer<Sample, WINDOW_SIZE>,
 	sum: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
@@ -28,11 +27,9 @@ where
 
 		self.sum += new_sample;
 
-		if self.samples.len() == WINDOW_SIZE {
-			self.sum -= self.samples.pop_back().unwrap_or(self.sum);
+		if let Some(shifted_sample) = self.samples.shift(new_sample) {
+			self.sum -= shifted_sample;
 		}
-
-		self.samples.push_front(new_sample);
 	}
 
 	fn get_average(&self) -> Sample {
@@ -49,11 +46,6 @@ where
 		self.samples.front().cloned()
 	}
 
-	fn get_samples(&mut self) -> &[Sample] {
-		self.samples.make_contiguous();
-		self.samples.as_slices().0
-	}
-
 	fn get_num_samples(&self) -> usize {
 		self.samples.len()
 	}
@@ -63,7 +55,9 @@ where
 	}
 }
 
-impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize> SingleSumSMA<Sample, Divisor, WINDOW_SIZE> {
+impl<Sample: Copy + Zero, Divisor, const WINDOW_SIZE: usize>
+	SingleSumSMA<Sample, Divisor, WINDOW_SIZE>
+{
 	/// Constructs a new [SingleSumSMA] with window size `WINDOW_SIZE`. This constructor is
 	/// only available for `Sample` types that implement [num_traits::Zero]. If the `Sample` type
 	/// does not, use the [from_zero](SingleSumSMA::from_zero) constructor instead.
@@ -72,20 +66,20 @@ impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize> SingleSumSMA<Sample, Divis
 	/// constructor and must be explicitly stated, even if it is the same as the `Sample` type.
 	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(WINDOW_SIZE),
+			samples: RingBuffer::new(Sample::zero()),
 			sum: Sample::zero(),
 			_marker: PhantomData,
 		}
 	}
 }
 
-impl<Sample, Divisor, const WINDOW_SIZE: usize> SingleSumSMA<Sample, Divisor, WINDOW_SIZE> {
+impl<Sample: Copy, Divisor, const WINDOW_SIZE: usize> SingleSumSMA<Sample, Divisor, WINDOW_SIZE> {
 	/// Constructs a new [SingleSumSMA] with window size `WINDOW_SIZE` from the given
 	/// `zero` sample. If the `Sample` type implements [num_traits::Zero], the
 	/// [new](SingleSumSMA::new) constructor might be preferable to this.
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(WINDOW_SIZE),
+			samples: RingBuffer::new(zero),
 			sum: zero,
 			_marker: PhantomData,
 		}

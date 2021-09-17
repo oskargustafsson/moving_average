@@ -175,6 +175,7 @@ with [NoSumSMA].
 
 mod common;
 mod no_sum_sma;
+mod ring_buffer;
 mod single_sum_sma;
 mod sma;
 mod sum_tree;

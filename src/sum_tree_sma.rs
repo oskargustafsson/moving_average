@@ -1,8 +1,7 @@
 use super::{sum_tree::SumTree, SMA};
-use crate::common::cast_to_divisor_type;
+use crate::{common::cast_to_divisor_type, ring_buffer::RingBuffer};
 use num_traits::{FromPrimitive, Zero};
 use std::{
-	collections::VecDeque,
 	marker::{self, PhantomData},
 	ops::{Add, Div},
 };
@@ -12,7 +11,7 @@ type SumTreeNodeIdx = usize;
 /// An SMA implementation that caches the sum of all samples currently in the sample window as a
 /// tree of sums.
 pub struct SumTreeSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
-	samples: VecDeque<SumTreeNodeIdx>,
+	samples: RingBuffer<SumTreeNodeIdx, WINDOW_SIZE>,
 	sum_tree: SumTree<Sample>,
 	_marker: marker::PhantomData<Divisor>,
 }
@@ -34,9 +33,10 @@ where
 			self.samples.pop_back().unwrap()
 		};
 
+		self.samples.push_front(tree_node_idx);
+
 		self.sum_tree
 			.update_leaf_node_sample(tree_node_idx, new_sample);
-		self.samples.push_front(tree_node_idx);
 	}
 
 	fn get_average(&self) -> Sample {
@@ -55,10 +55,6 @@ where
 			.map(|node_idx| self.sum_tree.get_leaf_node_sum(node_idx))
 	}
 
-	fn get_samples(&mut self) -> &[Sample] {
-		self.sum_tree.get_leaf_nodes_slice()
-	}
-
 	fn get_num_samples(&self) -> usize {
 		self.samples.len()
 	}
@@ -68,7 +64,7 @@ where
 	}
 }
 
-impl<Sample: Zero + Copy, Divisor, const WINDOW_SIZE: usize>
+impl<Sample: Copy + Zero, Divisor, const WINDOW_SIZE: usize>
 	SumTreeSMA<Sample, Divisor, WINDOW_SIZE>
 {
 	/// Constructs a new [SumTreeSMA] with window size `WINDOW_SIZE`. This constructor is
@@ -79,7 +75,7 @@ impl<Sample: Zero + Copy, Divisor, const WINDOW_SIZE: usize>
 	/// constructor and must be explicitly stated, even if it is the same as the `Sample` type.
 	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(WINDOW_SIZE),
+			samples: RingBuffer::new(0),
 			sum_tree: SumTree::new(Sample::zero(), WINDOW_SIZE),
 			_marker: PhantomData,
 		}
@@ -92,7 +88,7 @@ impl<Sample: Copy, Divisor, const WINDOW_SIZE: usize> SumTreeSMA<Sample, Divisor
 	/// [new](SumTreeSMA::new) constructor might be preferable to this.
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(WINDOW_SIZE),
+			samples: RingBuffer::new(0),
 			sum_tree: SumTree::new(zero, WINDOW_SIZE),
 			_marker: PhantomData,
 		}

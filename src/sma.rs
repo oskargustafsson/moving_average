@@ -24,9 +24,6 @@ pub trait SMA<Sample, Divisor = Sample> {
 	/// Returns the most recently added sample.
 	fn get_most_recent_sample(&self) -> Option<Sample>;
 
-	/// Returns a reference to a slice, containing all samples in the sample window.
-	fn get_samples(&mut self) -> &[Sample];
-
 	/// Returns the total number of samples currently in the in the sample window. This value never
 	/// exceeds the sample window size.
 	fn get_num_samples(&self) -> usize;

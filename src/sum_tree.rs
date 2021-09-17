@@ -1,7 +1,7 @@
 use std::ops::Add;
 
 pub struct SumTree<Sample> {
-	nodes: Vec<Sample>,
+	nodes: Vec<Sample>, // TODO: Convert this to an array, once const generics support arithmetic
 }
 
 enum Position {
@@ -27,10 +27,6 @@ where
 		let node_idx = self.get_leaf_nodes_offset() + leaf_node_idx;
 		*self.get_node_mut(node_idx) = new_sample;
 		self.update_parent_recursive(node_idx, new_sample);
-	}
-
-	pub fn get_leaf_nodes_slice(&self) -> &[Sample] {
-		&self.nodes[self.get_leaf_nodes_offset()..]
 	}
 
 	fn update_parent_recursive(&mut self, child_node_idx: usize, new_child_subtree_sum: Sample) {

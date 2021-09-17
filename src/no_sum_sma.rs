@@ -1,15 +1,14 @@
 use super::SMA;
-use crate::common::cast_to_divisor_type;
+use crate::{common::cast_to_divisor_type, ring_buffer::RingBuffer};
 use num_traits::{FromPrimitive, Zero};
 use std::{
-	collections::VecDeque,
 	marker::{self, PhantomData},
 	ops::{AddAssign, Div},
 };
 
 /// An SMA implementation that does not cache any intermediate sample sum.
 pub struct NoSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
-	samples: VecDeque<Sample>,
+	samples: RingBuffer<Sample, WINDOW_SIZE>,
 	zero: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
@@ -24,11 +23,6 @@ where
 		if WINDOW_SIZE == 0 {
 			return;
 		}
-
-		if self.samples.len() == WINDOW_SIZE {
-			self.samples.pop_back();
-		}
-
 		self.samples.push_front(new_sample);
 	}
 
@@ -41,7 +35,7 @@ where
 
 		let sum = {
 			let mut sum = self.zero;
-			for sample in &self.samples {
+			for sample in self.samples.iter() {
 				sum += *sample;
 			}
 			sum
@@ -54,11 +48,6 @@ where
 		self.samples.front().cloned()
 	}
 
-	fn get_samples(&mut self) -> &[Sample] {
-		self.samples.make_contiguous();
-		self.samples.as_slices().0
-	}
-
 	fn get_num_samples(&self) -> usize {
 		self.samples.len()
 	}
@@ -68,7 +57,9 @@ where
 	}
 }
 
-impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize> NoSumSMA<Sample, Divisor, WINDOW_SIZE> {
+impl<Sample: Copy + Zero, Divisor, const WINDOW_SIZE: usize>
+	NoSumSMA<Sample, Divisor, WINDOW_SIZE>
+{
 	/// Constructs a new [NoSumSMA] with window size `WINDOW_SIZE`. This constructor is
 	/// only available for `Sample` types that implement [num_traits::Zero]. If the `Sample` type
 	/// does not, use the [from_zero](NoSumSMA::from_zero) constructor instead.
@@ -77,20 +68,20 @@ impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize> NoSumSMA<Sample, Divisor, 
 	/// constructor and must be explicitly stated, even if it is the same as the `Sample` type.
 	pub fn new() -> Self {
 		Self {
-			samples: VecDeque::with_capacity(WINDOW_SIZE),
+			samples: RingBuffer::new(Sample::zero()),
 			zero: Sample::zero(),
 			_marker: PhantomData,
 		}
 	}
 }
 
-impl<Sample, Divisor, const WINDOW_SIZE: usize> NoSumSMA<Sample, Divisor, WINDOW_SIZE> {
+impl<Sample: Copy, Divisor, const WINDOW_SIZE: usize> NoSumSMA<Sample, Divisor, WINDOW_SIZE> {
 	/// Constructs a new [NoSumSMA] with window size `WINDOW_SIZE` from the given
 	/// `zero` sample. If the `Sample` type implements [num_traits::Zero], the
 	/// [new](NoSumSMA::new) constructor might be preferable to this.
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {
-			samples: VecDeque::with_capacity(WINDOW_SIZE),
+			samples: RingBuffer::new(zero),
 			zero,
 			_marker: PhantomData,
 		}
