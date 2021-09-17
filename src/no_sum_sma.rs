@@ -6,16 +6,16 @@ use std::{
 	ops::{AddAssign, Div},
 };
 
-use super::MovingAverage;
+use super::SMA;
 
-pub struct NoSumMovingAverage<Sample, Divisor, const WINDOW_SIZE: usize> {
+pub struct NoSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: VecDeque<Sample>,
 	zero: Sample,
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Sample, Divisor, const WINDOW_SIZE: usize> MovingAverage<Sample, Divisor>
-	for NoSumMovingAverage<Sample, Divisor, WINDOW_SIZE>
+impl<Sample, Divisor, const WINDOW_SIZE: usize> SMA<Sample, Divisor>
+	for NoSumSMA<Sample, Divisor, WINDOW_SIZE>
 where
 	Sample: Copy + AddAssign + Div<Divisor, Output = Sample>,
 	Divisor: FromPrimitive,
@@ -76,12 +76,10 @@ where
 	}
 }
 
-impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize>
-	NoSumMovingAverage<Sample, Divisor, WINDOW_SIZE>
-{
-	/// Constructs a new [NoSumMovingAverage] with window size `WINDOW_SIZE`. This constructor is
+impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize> NoSumSMA<Sample, Divisor, WINDOW_SIZE> {
+	/// Constructs a new [NoSumSMA] with window size `WINDOW_SIZE`. This constructor is
 	/// only available for `Sample` types that implement [num_traits::Zero]. If the `Sample` type
-	/// does not, use the [from_zero](NoSumMovingAverage::from_zero) constructor instead.
+	/// does not, use the [from_zero](NoSumSMA::from_zero) constructor instead.
 	///
 	/// Note that the `Divisor` type usually cannot be derived by the compiler when using this
 	/// constructor and must be explicitly stated, even if it is the same as the `Sample` type.
@@ -94,10 +92,10 @@ impl<Sample: Zero, Divisor, const WINDOW_SIZE: usize>
 	}
 }
 
-impl<Sample, Divisor, const WINDOW_SIZE: usize> NoSumMovingAverage<Sample, Divisor, WINDOW_SIZE> {
-	/// Constructs a new [NoSumMovingAverage] with window size `WINDOW_SIZE` from the given
+impl<Sample, Divisor, const WINDOW_SIZE: usize> NoSumSMA<Sample, Divisor, WINDOW_SIZE> {
+	/// Constructs a new [NoSumSMA] with window size `WINDOW_SIZE` from the given
 	/// `zero` sample. If the `Sample` type implements [num_traits::Zero], the
-	/// [new](NoSumMovingAverage::new) constructor might be preferable to this.
+	/// [new](NoSumSMA::new) constructor might be preferable to this.
 	pub fn from_zero(zero: Sample) -> Self {
 		Self {
 			samples: VecDeque::with_capacity(WINDOW_SIZE),

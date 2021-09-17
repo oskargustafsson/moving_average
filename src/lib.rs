@@ -2,7 +2,7 @@
 This crate provides several algorithms for calculating
 [simple moving averages](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
 
-All variants implement the [MovingAverage] trait, which provides a unified iterface. The interface
+All variants implement the [SMA] trait, which provides a unified iterface. The interface
 is generic over sample type, meaning that any type that supports addition and division by a scalar
 can be averaged. This includes most primitive numeric types
 ([f32](https://doc.rust-lang.org/std/primitive.f32.html),
@@ -15,8 +15,8 @@ many third party math library ([nalgebra](https://docs.rs/nalgebra/),
 
 *Scalars*
 ```
-# use moving_average::{MovingAverage, SumTreeMovingAverage};
-let mut ma = SumTreeMovingAverage::<_, f32, 2>::new(); // Sample window size = 2
+# use simple_moving_average::{SMA, SumTreeSMA};
+let mut ma = SumTreeSMA::<_, f32, 2>::new(); // Sample window size = 2
 ma.add_sample(1.0);
 ma.add_sample(2.0);
 ma.add_sample(3.0);
@@ -25,10 +25,10 @@ assert_eq!(ma.get_average(), 2.5); // = (2 + 3) / 2
 
 *Vectors*
 ```
-# use moving_average::{MovingAverage, NoSumMovingAverage};
+# use simple_moving_average::{SMA, NoSumSMA};
 # use std::time::{Duration, Instant};
 # use nalgebra::Vector3;
-let mut ma = NoSumMovingAverage::<_, f64, 2>::new();
+let mut ma = NoSumSMA::<_, f64, 2>::new();
 ma.add_sample(Vector3::new(1.0, 2.0, 3.0));
 ma.add_sample(Vector3::new(-4.0, -2.0, -1.0));
 assert_eq!(ma.get_average(), Vector3::new(-1.5, 0.0, 1.0));
@@ -36,9 +36,9 @@ assert_eq!(ma.get_average(), Vector3::new(-1.5, 0.0, 1.0));
 
 *Durations*
 ```
-# use moving_average::{MovingAverage, SingleSumMovingAverage};
+# use simple_moving_average::{SMA, SingleSumSMA};
 # use std::time::{Duration, Instant};
-let mut ma = SingleSumMovingAverage::<_, _, 10>::from_zero(Duration::ZERO);
+let mut ma = SingleSumSMA::<_, _, 10>::from_zero(Duration::ZERO);
 loop {
 	let instant = Instant::now();
 	// [ application code ]
@@ -54,7 +54,7 @@ One way to achieve good performance when calculating simple moving averages is t
 calculations, specifically the sum of the samples currently in the sample window. Caching this sum
 has both pros and cons, which is what motivates the three different implementations presented below.
 
-### NoSumMovingAverage
+### NoSumSMA
 
 The most straightforward way of implementing a moving average is to not cache any sum at all, hence
 the name if this implementation. The sum of all samples is calculated from scratch, at `O(N)` time
@@ -64,7 +64,7 @@ complexity (`N` being the sample window size), every time the average is request
  - When the sample window size is so small that the samples summation cost is negligable.
  - When new samples are written significantly more often than the average value is read.
 
-### SingleSumMovingAverage
+### SingleSumSMA
 
 This implementation caches the sum of all samples in the sample window as a single value, leading to
 `O(1)` time complexity for both writing new samples and reading their average. A problem with this
@@ -73,13 +73,13 @@ is added to the cached sum, there is a risk of accumulating a rounding error.
 
 The magnitude of the accumulated error depends on many factors, including moving window size and
 sample distribution. Below is a visualization of how the absolute difference in average value
-between [SingleSumMovingAverage] and [NoSumMovingAverage] (which does not suffer from accumulated
+between [SingleSumSMA] and [NoSumSMA] (which does not suffer from accumulated
 rounding errors) grows with the number of samples, for a typical window size and set of samples.
 
 `Sample type: f32`, `Sample window size: 10`,
 `Sample distribution: Uniform[-100, 100]`
 
-![Difference between SingleSumMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/single_sum_diff.png)
+![Difference between SingleSumSMA and NoSumSMA](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/single_sum_diff.png)
 
 *Note:* Both axes of the graph are logarithmic. The Y axis values represent the maxiumum difference
 found over 100 test runs.
@@ -94,7 +94,7 @@ point precision is at its highest.
    types and [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html).
  - When performance is more important than numerical accuracy.
 
-### SumTreeMovingAverage
+### SumTreeSMA
 
 There is a way of avoiding the accumulated floating point rounding errors, without having to
 re-calculate the whole samples sum every time the average value is requested. The downside though,
@@ -150,9 +150,9 @@ is what keeps the floating point rounding error from accumulating.
 submit a [PR](https://github.com/oskargustafsson/moving_average/pulls). In the mean time, there is a
 unit test that empirically proves that the rounding error does not accumulate. Part of that test's
 output data is visualized in the graph below, showing no accumulated rounding errors when compared
-with [NoSumMovingAverage].
+with [NoSumSMA].
 
-![Difference between SumTreeMovingAverage and NoSumMovingAverage](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/sum_tree_diff.png)
+![Difference between SumTreeSMA and NoSumSMA](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/sum_tree_diff.png)
 
 **When to use**
  - In most cases where floating point data is involved, unless writes are much more common than
@@ -162,9 +162,9 @@ with [NoSumMovingAverage].
 
 | Implementation           | Add sample  | Get average | Caveat                          |
 |--------------------------|-------------|-------------|---------------------------------|
-| [NoSumMovingAverage]     | `O(1)`      | `O(N)`      | -                               |
-| [SingleSumMovingAverage] | `O(1)`      | `O(1)`      | Accumulates FP rounding errors. |
-| [SumTreeMovingAverage]   | `O(log(N))` | `O(1)`      | -                               |
+| [NoSumSMA]     | `O(1)`      | `O(N)`      | -                               |
+| [SingleSumSMA] | `O(1)`      | `O(1)`      | Accumulates FP rounding errors. |
+| [SumTreeSMA]   | `O(log(N))` | `O(1)`      | -                               |
 
 `N` refers to the size of the sample window.
 
@@ -172,29 +172,29 @@ All implementations have `O(N)` space complexity.
 
 */
 
-mod moving_average;
-mod no_sum_moving_average;
-mod single_sum_moving_average;
+mod no_sum_sma;
+mod single_sum_sma;
+mod sma;
 mod sum_tree;
-mod sum_tree_moving_average;
+mod sum_tree_sma;
 
-pub use crate::moving_average::MovingAverage;
-pub use crate::no_sum_moving_average::NoSumMovingAverage;
-pub use crate::single_sum_moving_average::SingleSumMovingAverage;
-pub use crate::sum_tree_moving_average::SumTreeMovingAverage;
+pub use crate::no_sum_sma::NoSumSMA;
+pub use crate::single_sum_sma::SingleSumSMA;
+pub use crate::sma::SMA;
+pub use crate::sum_tree_sma::SumTreeSMA;
 
 #[cfg(test)]
 mod tests {
-	use crate::{MovingAverage, NoSumMovingAverage, SingleSumMovingAverage, SumTreeMovingAverage};
+	use crate::{NoSumSMA, SingleSumSMA, SumTreeSMA, SMA};
 
-	macro_rules! get_ma_impls {
+	macro_rules! get_sma_impls {
 		(
 			$divisor_type:ty, $window_size:expr, $ctor:ident $(, $zero:expr)?
 		) => {{
-			let ma_impls: [Box<dyn MovingAverage<_, $divisor_type>>; 3] = [
-				Box::new(SingleSumMovingAverage::<_, _, $window_size>::$ctor($($zero ,)?)),
-				Box::new(SumTreeMovingAverage::<_, _, $window_size>::$ctor($($zero ,)?)),
-				Box::new(NoSumMovingAverage::<_, _, $window_size>::$ctor($($zero ,)?)),
+			let ma_impls: [Box<dyn SMA<_, $divisor_type>>; 3] = [
+				Box::new(SingleSumSMA::<_, _, $window_size>::$ctor($($zero ,)?)),
+				Box::new(SumTreeSMA::<_, _, $window_size>::$ctor($($zero ,)?)),
+				Box::new(NoSumSMA::<_, _, $window_size>::$ctor($($zero ,)?)),
 			];
 			ma_impls
 		}};
@@ -202,84 +202,84 @@ mod tests {
 
 	#[test]
 	fn f32_samples() {
-		for ma in &mut get_ma_impls!(f32, 3, new) {
-			assert_eq!(ma.get_average(), 0.0);
-			assert_eq!(ma.get_num_samples(), 0);
+		for sma in &mut get_sma_impls!(f32, 3, new) {
+			assert_eq!(sma.get_average(), 0.0);
+			assert_eq!(sma.get_num_samples(), 0);
 
-			ma.add_sample(4.0);
-			assert_eq!(ma.get_average(), 4.0);
-			assert_eq!(ma.get_num_samples(), 1);
+			sma.add_sample(4.0);
+			assert_eq!(sma.get_average(), 4.0);
+			assert_eq!(sma.get_num_samples(), 1);
 
-			ma.add_sample(8.0);
-			assert_eq!(ma.get_average(), 6.0);
-			assert_eq!(ma.get_num_samples(), 2);
+			sma.add_sample(8.0);
+			assert_eq!(sma.get_average(), 6.0);
+			assert_eq!(sma.get_num_samples(), 2);
 
-			ma.add_sample(3.0);
-			assert_eq!(ma.get_average(), 5.0);
-			assert_eq!(ma.get_num_samples(), 3);
+			sma.add_sample(3.0);
+			assert_eq!(sma.get_average(), 5.0);
+			assert_eq!(sma.get_num_samples(), 3);
 
 			// Here we reach window_size and start to pop old samples
 
-			ma.add_sample(7.0);
-			assert_eq!(ma.get_average(), 6.0);
-			assert_eq!(ma.get_num_samples(), 3);
+			sma.add_sample(7.0);
+			assert_eq!(sma.get_average(), 6.0);
+			assert_eq!(sma.get_num_samples(), 3);
 
-			ma.add_sample(11.0);
-			assert_eq!(ma.get_average(), 7.0);
-			assert_eq!(ma.get_num_samples(), 3);
+			sma.add_sample(11.0);
+			assert_eq!(sma.get_average(), 7.0);
+			assert_eq!(sma.get_num_samples(), 3);
 
-			ma.add_sample(0.0);
-			assert_eq!(ma.get_average(), 6.0);
-			assert_eq!(ma.get_num_samples(), 3);
+			sma.add_sample(0.0);
+			assert_eq!(sma.get_average(), 6.0);
+			assert_eq!(sma.get_num_samples(), 3);
 
-			ma.add_sample(-23.0);
-			assert_eq!(ma.get_average(), -4.0);
-			assert_eq!(ma.get_num_samples(), 3);
+			sma.add_sample(-23.0);
+			assert_eq!(sma.get_average(), -4.0);
+			assert_eq!(sma.get_num_samples(), 3);
 		}
 	}
 
 	#[test]
 	fn u32_samples() {
-		for ma in &mut get_ma_impls!(u32, 3, new) {
-			assert_eq!(ma.get_average(), 0);
+		for sma in &mut get_sma_impls!(u32, 3, new) {
+			assert_eq!(sma.get_average(), 0);
 
-			ma.add_sample(4);
-			assert_eq!(ma.get_average(), 4);
+			sma.add_sample(4);
+			assert_eq!(sma.get_average(), 4);
 
-			ma.add_sample(8);
-			assert_eq!(ma.get_average(), 6);
+			sma.add_sample(8);
+			assert_eq!(sma.get_average(), 6);
 
-			ma.add_sample(3);
-			assert_eq!(ma.get_average(), 5);
+			sma.add_sample(3);
+			assert_eq!(sma.get_average(), 5);
 
-			ma.add_sample(7);
-			assert_eq!(ma.get_average(), 6);
+			sma.add_sample(7);
+			assert_eq!(sma.get_average(), 6);
 
-			ma.add_sample(11);
-			assert_eq!(ma.get_average(), 7);
+			sma.add_sample(11);
+			assert_eq!(sma.get_average(), 7);
 
-			ma.add_sample(0);
-			assert_eq!(ma.get_average(), 6);
+			sma.add_sample(0);
+			assert_eq!(sma.get_average(), 6);
 		}
 	}
 
 	#[test]
 	fn u32_samples_2() {
-		for ma in &mut get_ma_impls!(u32, 3, new) {
-			ma.add_sample(1);
-			assert_eq!(ma.get_average(), 1);
+		for sma in &mut get_sma_impls!(u32, 3, new) {
+			sma.add_sample(1);
+			assert_eq!(sma.get_average(), 1);
 
-			ma.add_sample(2);
-			assert_eq!(ma.get_average(), 1);
+			sma.add_sample(2);
+			assert_eq!(sma.get_average(), 1);
 
-			ma.add_sample(3);
-			assert_eq!(ma.get_average(), 2);
+			sma.add_sample(3);
+			assert_eq!(sma.get_average(), 2);
 
-			ma.add_sample(4);
-			assert_eq!(ma.get_average(), 3);
+			sma.add_sample(4);
+			assert_eq!(sma.get_average(), 3);
 
-			ma.add_sample(10);
-			assert_eq!(ma.get_average(), 5);
+			sma.add_sample(10);
+			assert_eq!(sma.get_average(), 5);
 		}
 	}
 
@@ -287,23 +287,23 @@ mod tests {
 	fn nalgebra_vector2_f32_samples() {
 		use nalgebra::Vector2;
 
-		for ma in &mut get_ma_impls!(f32, 3, new) {
-			assert_eq!(ma.get_average(), Vector2::new(0.0, 0.0));
+		for sma in &mut get_sma_impls!(f32, 3, new) {
+			assert_eq!(sma.get_average(), Vector2::new(0.0, 0.0));
 
-			ma.add_sample(Vector2::new(4.0, 8.0));
-			assert_eq!(ma.get_average(), Vector2::new(4.0, 8.0));
+			sma.add_sample(Vector2::new(4.0, 8.0));
+			assert_eq!(sma.get_average(), Vector2::new(4.0, 8.0));
 
-			ma.add_sample(Vector2::new(6.0, 0.0));
-			assert_eq!(ma.get_average(), Vector2::new(5.0, 4.0));
+			sma.add_sample(Vector2::new(6.0, 0.0));
+			assert_eq!(sma.get_average(), Vector2::new(5.0, 4.0));
 
-			ma.add_sample(Vector2::new(2.0, 10.0));
-			assert_eq!(ma.get_average(), Vector2::new(4.0, 6.0));
+			sma.add_sample(Vector2::new(2.0, 10.0));
+			assert_eq!(sma.get_average(), Vector2::new(4.0, 6.0));
 
-			ma.add_sample(Vector2::new(-17.0, 20.0));
-			assert_eq!(ma.get_average(), Vector2::new(-3.0, 10.0));
+			sma.add_sample(Vector2::new(-17.0, 20.0));
+			assert_eq!(sma.get_average(), Vector2::new(-3.0, 10.0));
 
-			ma.add_sample(Vector2::new(0.0, -21.0));
-			assert_eq!(ma.get_average(), Vector2::new(-5.0, 3.0));
+			sma.add_sample(Vector2::new(0.0, -21.0));
+			assert_eq!(sma.get_average(), Vector2::new(-5.0, 3.0));
 		}
 	}
 
@@ -311,23 +311,23 @@ mod tests {
 	fn euclid_vector2_f32_samples() {
 		use euclid::default::Vector2D;
 
-		for ma in &mut get_ma_impls!(f32, 3, from_zero, Vector2D::zero()) {
-			assert_eq!(ma.get_average(), Vector2D::new(0.0, 0.0));
+		for sma in &mut get_sma_impls!(f32, 3, from_zero, Vector2D::zero()) {
+			assert_eq!(sma.get_average(), Vector2D::new(0.0, 0.0));
 
-			ma.add_sample(Vector2D::new(4.0, 8.0));
-			assert_eq!(ma.get_average(), Vector2D::new(4.0, 8.0));
+			sma.add_sample(Vector2D::new(4.0, 8.0));
+			assert_eq!(sma.get_average(), Vector2D::new(4.0, 8.0));
 
-			ma.add_sample(Vector2D::new(6.0, 0.0));
-			assert_eq!(ma.get_average(), Vector2D::new(5.0, 4.0));
+			sma.add_sample(Vector2D::new(6.0, 0.0));
+			assert_eq!(sma.get_average(), Vector2D::new(5.0, 4.0));
 
-			ma.add_sample(Vector2D::new(2.0, 10.0));
-			assert_eq!(ma.get_average(), Vector2D::new(4.0, 6.0));
+			sma.add_sample(Vector2D::new(2.0, 10.0));
+			assert_eq!(sma.get_average(), Vector2D::new(4.0, 6.0));
 
-			ma.add_sample(Vector2D::new(-17.0, 20.0));
-			assert_eq!(ma.get_average(), Vector2D::new(-3.0, 10.0));
+			sma.add_sample(Vector2D::new(-17.0, 20.0));
+			assert_eq!(sma.get_average(), Vector2D::new(-3.0, 10.0));
 
-			ma.add_sample(Vector2D::new(0.0, -21.0));
-			assert_eq!(ma.get_average(), Vector2D::new(-5.0, 3.0));
+			sma.add_sample(Vector2D::new(0.0, -21.0));
+			assert_eq!(sma.get_average(), Vector2D::new(-5.0, 3.0));
 		}
 	}
 
@@ -335,23 +335,23 @@ mod tests {
 	fn cgmath_vector2_f32_samples() {
 		use cgmath::Vector2;
 
-		for ma in &mut get_ma_impls!(f32, 3, new) {
-			assert_eq!(ma.get_average(), Vector2::new(0.0, 0.0));
+		for sma in &mut get_sma_impls!(f32, 3, new) {
+			assert_eq!(sma.get_average(), Vector2::new(0.0, 0.0));
 
-			ma.add_sample(Vector2::new(4.0, 8.0));
-			assert_eq!(ma.get_average(), Vector2::new(4.0, 8.0));
+			sma.add_sample(Vector2::new(4.0, 8.0));
+			assert_eq!(sma.get_average(), Vector2::new(4.0, 8.0));
 
-			ma.add_sample(Vector2::new(6.0, 0.0));
-			assert_eq!(ma.get_average(), Vector2::new(5.0, 4.0));
+			sma.add_sample(Vector2::new(6.0, 0.0));
+			assert_eq!(sma.get_average(), Vector2::new(5.0, 4.0));
 
-			ma.add_sample(Vector2::new(2.0, 10.0));
-			assert_eq!(ma.get_average(), Vector2::new(4.0, 6.0));
+			sma.add_sample(Vector2::new(2.0, 10.0));
+			assert_eq!(sma.get_average(), Vector2::new(4.0, 6.0));
 
-			ma.add_sample(Vector2::new(-17.0, 20.0));
-			assert_eq!(ma.get_average(), Vector2::new(-3.0, 10.0));
+			sma.add_sample(Vector2::new(-17.0, 20.0));
+			assert_eq!(sma.get_average(), Vector2::new(-3.0, 10.0));
 
-			ma.add_sample(Vector2::new(0.0, -21.0));
-			assert_eq!(ma.get_average(), Vector2::new(-5.0, 3.0));
+			sma.add_sample(Vector2::new(0.0, -21.0));
+			assert_eq!(sma.get_average(), Vector2::new(-5.0, 3.0));
 		}
 	}
 
@@ -359,35 +359,35 @@ mod tests {
 	fn duration_samples() {
 		use std::time::Duration;
 
-		for ma in &mut get_ma_impls!(u32, 3, from_zero, Duration::ZERO) {
-			assert_eq!(ma.get_average(), Duration::from_secs(0));
+		for sma in &mut get_sma_impls!(u32, 3, from_zero, Duration::ZERO) {
+			assert_eq!(sma.get_average(), Duration::from_secs(0));
 
-			ma.add_sample(Duration::from_secs(10));
-			assert_eq!(ma.get_average(), Duration::from_secs(10));
+			sma.add_sample(Duration::from_secs(10));
+			assert_eq!(sma.get_average(), Duration::from_secs(10));
 
-			ma.add_sample(Duration::from_secs(20));
-			assert_eq!(ma.get_average(), Duration::from_secs(15));
+			sma.add_sample(Duration::from_secs(20));
+			assert_eq!(sma.get_average(), Duration::from_secs(15));
 
-			ma.add_sample(Duration::from_secs(30));
-			assert_eq!(ma.get_average(), Duration::from_secs(20));
+			sma.add_sample(Duration::from_secs(30));
+			assert_eq!(sma.get_average(), Duration::from_secs(20));
 
-			ma.add_sample(Duration::from_secs(1));
-			assert_eq!(ma.get_average(), Duration::from_secs(17));
+			sma.add_sample(Duration::from_secs(1));
+			assert_eq!(sma.get_average(), Duration::from_secs(17));
 
-			ma.add_sample(Duration::from_secs(32));
-			assert_eq!(ma.get_average(), Duration::from_secs(21));
+			sma.add_sample(Duration::from_secs(32));
+			assert_eq!(sma.get_average(), Duration::from_secs(21));
 		}
 	}
 
 	#[test]
 	fn edge_case_zero_sized() {
-		for ma in &mut get_ma_impls!(u32, 0, new) {
-			assert_eq!(ma.get_average(), 0);
-			assert_eq!(ma.get_num_samples(), 0);
+		for sma in &mut get_sma_impls!(u32, 0, new) {
+			assert_eq!(sma.get_average(), 0);
+			assert_eq!(sma.get_num_samples(), 0);
 
-			ma.add_sample(16);
-			assert_eq!(ma.get_average(), 0);
-			assert_eq!(ma.get_num_samples(), 0);
+			sma.add_sample(16);
+			assert_eq!(sma.get_average(), 0);
+			assert_eq!(sma.get_num_samples(), 0);
 		}
 	}
 
@@ -419,20 +419,20 @@ mod tests {
 					.take(1000000)
 					.collect();
 
-				let mut single_sum_ma = SingleSumMovingAverage::<_, f32, WINDOW_SIZE>::new();
-				let mut sum_tree_ma = SumTreeMovingAverage::<_, f32, WINDOW_SIZE>::new();
-				let mut no_sum_ma = NoSumMovingAverage::<_, f32, WINDOW_SIZE>::new();
+				let mut single_sum_sma = SingleSumSMA::<_, f32, WINDOW_SIZE>::new();
+				let mut sum_tree_sma = SumTreeSMA::<_, f32, WINDOW_SIZE>::new();
+				let mut no_sum_sma = NoSumSMA::<_, f32, WINDOW_SIZE>::new();
 
 				VALUE_RANGES.map(|value_range| {
 					for random_value in &random_values[value_range.0..value_range.1] {
-						single_sum_ma.add_sample(*random_value);
-						sum_tree_ma.add_sample(*random_value);
-						no_sum_ma.add_sample(*random_value);
+						single_sum_sma.add_sample(*random_value);
+						sum_tree_sma.add_sample(*random_value);
+						no_sum_sma.add_sample(*random_value);
 					}
 					[
-						single_sum_ma.get_average(),
-						sum_tree_ma.get_average(),
-						no_sum_ma.get_average(),
+						single_sum_sma.get_average(),
+						sum_tree_sma.get_average(),
+						no_sum_sma.get_average(),
 					]
 				})
 			})
