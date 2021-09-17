@@ -8,6 +8,7 @@ use std::{
 
 use super::SMA;
 
+/// An SMA implementation that does not cache any intermediate sample sum.
 pub struct NoSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: VecDeque<Sample>,
 	zero: Sample,

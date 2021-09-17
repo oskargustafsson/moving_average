@@ -1,10 +1,13 @@
 /*!
-This crate provides several algorithms for calculating
-[simple moving averages](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages).
+This crate provides several algorithms for calculating the
+[simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages) (SMA)
+of a series of data samples. SMAs are commonly used to implement
+[low-pass filters](https://en.wikipedia.org/wiki/Low-pass_filter), the second-most useful filter
+type in the world, beaten only by coffee filters.
 
-All variants implement the [SMA] trait, which provides a unified iterface. The interface
-is generic over sample type, meaning that any type that supports addition and division by a scalar
-can be averaged. This includes most primitive numeric types
+All algorithms implement the [SMA] trait, which provides an implementation-agnostic interface. The
+interface is generic over sample type, meaning that any type that supports addition and division by
+a scalar can be averaged. This includes most primitive numeric types
 ([f32](https://doc.rust-lang.org/std/primitive.f32.html),
 [u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
 [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
@@ -48,11 +51,21 @@ loop {
 }
 ```
 
-## Implementations
+## Algorithm implementations
 
 One way to achieve good performance when calculating simple moving averages is to cache previous
 calculations, specifically the sum of the samples currently in the sample window. Caching this sum
 has both pros and cons, which is what motivates the three different implementations presented below.
+
+| Implementation | Add sample  | Get average | Caveat                                      |
+|----------------|-------------|-------------|---------------------------------------------|
+| [NoSumSMA]     | `O(1)`      | `O(N)`      | -                                           |
+| [SingleSumSMA] | `O(1)`      | `O(1)`      | Accumulates floating point rounding errors. |
+| [SumTreeSMA]   | `O(log(N))` | `O(1)`      | -                                           |
+
+`N` refers to the size of the sample window.
+
+All implementations have `O(N)` space complexity.
 
 ### NoSumSMA
 
@@ -71,7 +84,7 @@ This implementation caches the sum of all samples in the sample window as a sing
 approach is that most floating point numbers can't be stored exactly, so every time a such a number
 is added to the cached sum, there is a risk of accumulating a rounding error.
 
-The magnitude of the accumulated error depends on many factors, including moving window size and
+The magnitude of the accumulated error depends on many factors, including sample window size and
 sample distribution. Below is a visualization of how the absolute difference in average value
 between [SingleSumSMA] and [NoSumSMA] (which does not suffer from accumulated
 rounding errors) grows with the number of samples, for a typical window size and set of samples.
@@ -81,7 +94,7 @@ rounding errors) grows with the number of samples, for a typical window size and
 
 ![Difference between SingleSumSMA and NoSumSMA](https://raw.githubusercontent.com/oskargustafsson/moving_average/master/res/single_sum_diff.png)
 
-*Note:* Both axes of the graph are logarithmic. The Y axis values represent the maxiumum difference
+*Note:* Both axes of the graph are logarithmic. The Y axis values represent the maximum differences
 found over 100 test runs.
 
 One way to reduce the error is to use wider type, e.g. `f64` instead of `f32`. The absolute error is
@@ -157,18 +170,6 @@ with [NoSumSMA].
 **When to use**
  - In most cases where floating point data is involved, unless writes are much more common than
    reads.
-
-### Summary (no pun intended)
-
-| Implementation           | Add sample  | Get average | Caveat                          |
-|--------------------------|-------------|-------------|---------------------------------|
-| [NoSumSMA]     | `O(1)`      | `O(N)`      | -                               |
-| [SingleSumSMA] | `O(1)`      | `O(1)`      | Accumulates FP rounding errors. |
-| [SumTreeSMA]   | `O(log(N))` | `O(1)`      | -                               |
-
-`N` refers to the size of the sample window.
-
-All implementations have `O(N)` space complexity.
 
 */
 

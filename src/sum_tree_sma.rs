@@ -10,6 +10,8 @@ use super::{sum_tree::SumTree, SMA};
 
 type SumTreeNodeIdx = usize;
 
+/// An SMA implementation that caches the sum of all samples currently in the sample window as a
+/// tree of sums.
 pub struct SumTreeSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: VecDeque<SumTreeNodeIdx>,
 	sum_tree: SumTree<Sample>,

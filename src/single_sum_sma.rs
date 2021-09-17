@@ -8,6 +8,8 @@ use std::{
 
 use super::SMA;
 
+/// An SMA implementation that caches the sum of all samples currently in the sample window as a
+/// single value.
 pub struct SingleSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: VecDeque<Sample>,
 	sum: Sample,
