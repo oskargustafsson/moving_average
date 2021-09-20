@@ -1,10 +1,9 @@
 [package]
 name = "simple_moving_average"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2018"
 authors = ["Oskar Gustafsson <oskargustafsson88@gmail.com>"]
 description = "Library of simple moving average (SMA) algorithms"
-documentation = "https://docs.rs/simple_moving_average"
 readme = "README.md"
 repository = "https://github.com/oskargustafsson/moving_average"
 categories = ["mathematics", "science"]
