@@ -6,7 +6,7 @@ This crate provides several algorithms for calculating the
 [simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages) (SMA)
 of a series of data samples. SMAs are commonly used to implement
 [low-pass filters](https://en.wikipedia.org/wiki/Low-pass_filter), the second-most useful filter
-type in the world, beaten only by coffee filters.
+type, bested only by coffee filters.
 
 All algorithms implement the [SMA] trait, which provides an implementation-agnostic interface. The
 interface is generic over sample type, meaning that any type that supports addition and division by
@@ -62,7 +62,9 @@ has both pros and cons, which is what motivates the three different implementati
 
 `N` refers to the size of the sample window.
 
-All implementations have `O(N)` space complexity.
+All implementations have `O(N)` space complexity. [NoSumSMA] and [SingleSumSMA] are completely
+// backed by arrays, so they are by default stack allocated. [SumTreeSMA] stores some data in an
+array, but its sum tree is stored in a Vec.
 
 #### NoSumSMA
 
