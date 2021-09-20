@@ -397,6 +397,22 @@ mod tests {
 	}
 
 	#[test]
+	fn misc_getters() {
+		for sma in &mut get_sma_impls!(u32, 5, new) {
+			assert_eq!(sma.get_average(), 0);
+			assert_eq!(sma.get_sample_window_size(), 5);
+			assert_eq!(sma.get_num_samples(), 0);
+			assert_eq!(sma.get_most_recent_sample(), None);
+
+			sma.add_sample(16);
+			assert_eq!(sma.get_average(), 16);
+			assert_eq!(sma.get_sample_window_size(), 5);
+			assert_eq!(sma.get_num_samples(), 1);
+			assert_eq!(sma.get_most_recent_sample(), Some(16));
+		}
+	}
+
+	#[test]
 	fn f32_random_samples_max_algorithm_diffs() {
 		use rand::{distributions::Uniform, rngs::SmallRng, Rng, SeedableRng};
 		use rayon::prelude::*;

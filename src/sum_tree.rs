@@ -100,7 +100,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn basic() {
+	fn basics() {
 		let mut sum_tree = SumTree::new(0, 6);
 
 		// Insert new nodes
