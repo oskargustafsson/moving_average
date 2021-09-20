@@ -12,6 +12,19 @@ pub fn cast_to_divisor_type<Divisor: FromPrimitive>(divisor: usize) -> Divisor {
 	})
 }
 
+pub fn wrapping_add<const MAX_VAL: usize>(lhs: usize, rhs: usize) -> usize {
+	(lhs + rhs) % MAX_VAL
+}
+
+pub fn wrapping_sub<const MAX_VAL: usize>(lhs: usize, rhs: usize) -> usize {
+	debug_assert!(rhs <= MAX_VAL);
+	if lhs < rhs {
+		(MAX_VAL - rhs) + lhs
+	} else {
+		lhs - rhs
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;

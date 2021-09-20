@@ -1,5 +1,5 @@
 use super::{sum_tree::SumTree, SMA};
-use crate::{common::cast_to_divisor_type, ring_buffer::RingBuffer};
+use crate::{common::cast_to_divisor_type, ring_buffer::RingBuffer, Iter};
 use num_traits::{FromPrimitive, Zero};
 use std::{
 	marker::{self, PhantomData},
@@ -16,7 +16,7 @@ pub struct SumTreeSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	_marker: marker::PhantomData<Divisor>,
 }
 
-impl<Sample, Divisor, const WINDOW_SIZE: usize> SMA<Sample, Divisor>
+impl<Sample, Divisor, const WINDOW_SIZE: usize> SMA<Sample, Divisor, WINDOW_SIZE>
 	for SumTreeSMA<Sample, Divisor, WINDOW_SIZE>
 where
 	Sample: Copy + Add<Output = Sample> + Div<Divisor, Output = Sample>,
@@ -61,6 +61,15 @@ where
 
 	fn get_sample_window_size(&self) -> usize {
 		WINDOW_SIZE
+	}
+
+	fn get_sample_window_iter(&self) -> Iter<Sample, WINDOW_SIZE> {
+		let num_samples = self.get_num_samples();
+		Iter::new(
+			self.sum_tree.get_leaf_nodes(num_samples),
+			num_samples,
+			num_samples,
+		)
 	}
 }
 

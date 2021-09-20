@@ -59,6 +59,12 @@ where
 	fn get_leaf_nodes_offset(&self) -> usize {
 		self.nodes.len() / 2
 	}
+
+	pub fn get_leaf_nodes(&self, num_nodes: usize) -> &[Sample] {
+		let leaf_nodes_start = self.get_leaf_nodes_offset();
+		let leaf_nodes_end = leaf_nodes_start + num_nodes;
+		&self.nodes[leaf_nodes_start..leaf_nodes_end]
+	}
 }
 
 impl<Sample> SumTree<Sample>

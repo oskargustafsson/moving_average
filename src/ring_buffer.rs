@@ -1,3 +1,8 @@
+use crate::{
+	common::{wrapping_add, wrapping_sub},
+	Iter,
+};
+
 pub struct RingBuffer<Item, const CAPACITY: usize> {
 	items: [Item; CAPACITY],
 	front_idx: usize,
@@ -52,47 +57,7 @@ impl<Item: Copy, const CAPACITY: usize> RingBuffer<Item, CAPACITY> {
 	}
 
 	pub fn iter(&self) -> Iter<'_, Item, CAPACITY> {
-		Iter {
-			items: &self.items,
-			cursor_idx: wrapping_sub::<CAPACITY>(self.front_idx, self.num_items),
-			num_items_left: self.num_items,
-		}
-	}
-}
-
-fn wrapping_add<const MAX_VAL: usize>(lhs: usize, rhs: usize) -> usize {
-	(lhs + rhs) % MAX_VAL
-}
-
-fn wrapping_sub<const MAX_VAL: usize>(lhs: usize, rhs: usize) -> usize {
-	debug_assert!(rhs <= MAX_VAL);
-	if lhs < rhs {
-		(MAX_VAL - rhs) + lhs
-	} else {
-		lhs - rhs
-	}
-}
-
-pub struct Iter<'a, Item: 'a, const CAPACITY: usize> {
-	items: &'a [Item],
-	cursor_idx: usize,
-	num_items_left: usize,
-}
-
-impl<'a, Item, const CAPACITY: usize> Iterator for Iter<'a, Item, CAPACITY> {
-	type Item = &'a Item;
-
-	fn next(&mut self) -> Option<Self::Item> {
-		if self.num_items_left == 0 {
-			return None;
-		}
-
-		self.num_items_left -= 1;
-
-		let cursor_idx = self.cursor_idx;
-		self.cursor_idx = wrapping_add::<CAPACITY>(self.cursor_idx, 1);
-
-		Some(&self.items[cursor_idx])
+		Iter::new(&self.items, self.front_idx, self.num_items)
 	}
 }
 

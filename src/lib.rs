@@ -176,6 +176,7 @@ with [NoSumSMA].
 */
 
 mod common;
+mod iterator;
 mod no_sum_sma;
 mod ring_buffer;
 mod single_sum_sma;
@@ -183,6 +184,7 @@ mod sma;
 mod sum_tree;
 mod sum_tree_sma;
 
+pub use crate::iterator::Iter;
 pub use crate::no_sum_sma::NoSumSMA;
 pub use crate::single_sum_sma::SingleSumSMA;
 pub use crate::sma::SMA;
@@ -196,7 +198,7 @@ mod tests {
 		(
 			$divisor_type:ty, $window_size:expr, $ctor:ident $(, $zero:expr)?
 		) => {{
-			let ma_impls: [Box<dyn SMA<_, $divisor_type>>; 3] = [
+			let ma_impls: [Box<dyn SMA<_, $divisor_type, $window_size>>; 3] = [
 				Box::new(SingleSumSMA::<_, _, $window_size>::$ctor($($zero ,)?)),
 				Box::new(SumTreeSMA::<_, _, $window_size>::$ctor($($zero ,)?)),
 				Box::new(NoSumSMA::<_, _, $window_size>::$ctor($($zero ,)?)),
@@ -403,12 +405,27 @@ mod tests {
 			assert_eq!(sma.get_sample_window_size(), 5);
 			assert_eq!(sma.get_num_samples(), 0);
 			assert_eq!(sma.get_most_recent_sample(), None);
+			assert_eq!(sma.get_sample_window_iter().collect::<Vec<&u32>>().len(), 0);
 
-			sma.add_sample(16);
-			assert_eq!(sma.get_average(), 16);
+			sma.add_sample(13);
+			assert_eq!(sma.get_average(), 13);
 			assert_eq!(sma.get_sample_window_size(), 5);
 			assert_eq!(sma.get_num_samples(), 1);
-			assert_eq!(sma.get_most_recent_sample(), Some(16));
+			assert_eq!(sma.get_most_recent_sample(), Some(13));
+			assert_eq!(
+				sma.get_sample_window_iter().collect::<Vec<&u32>>(),
+				vec![&13]
+			);
+
+			sma.add_sample(37);
+			assert_eq!(sma.get_average(), 25);
+			assert_eq!(sma.get_sample_window_size(), 5);
+			assert_eq!(sma.get_num_samples(), 2);
+			assert_eq!(sma.get_most_recent_sample(), Some(37));
+			assert_eq!(
+				sma.get_sample_window_iter().collect::<Vec<&u32>>(),
+				vec![&13, &37]
+			);
 		}
 	}
 
