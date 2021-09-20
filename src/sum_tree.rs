@@ -1,7 +1,9 @@
 use std::ops::Add;
 
 pub struct SumTree<Sample> {
-	nodes: Vec<Sample>, // TODO: Convert this to an array, once const generics support arithmetic
+	// TODO: Convert this to an array and use it as SumTreeSMA's main data storage, once
+	// https://github.com/rust-lang/rust/issues/76560 is stable
+	nodes: Vec<Sample>,
 }
 
 enum Position {
