@@ -1,6 +1,6 @@
 /*!
 This crate provides several algorithms for calculating the
-[simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages) (SMA)
+[simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average) (SMA)
 of a series of data samples. SMAs are commonly used to implement
 [low-pass filters](https://en.wikipedia.org/wiki/Low-pass_filter), the second-most useful filter
 type, bested only by coffee filters.
@@ -76,7 +76,7 @@ the name if this implementation. The sum of all samples is calculated from scrat
 complexity (`N` being the sample window size), every time the average is requested.
 
 **When to use**
- - When the sample window size is so small that the samples summation cost is negligable.
+ - When the sample window size is so small that the samples summation cost is negligible.
  - When new samples are written significantly more often than the average value is read.
 
 ### SingleSumSMA
@@ -138,8 +138,6 @@ For example
 
 can be represented as the following tree.
 ```text
-# Note to self: Each line in the ASCII art below starts with a "Zero width non-joiner" to stop
-# rustfmt from converting the subsequent spaces to tabs.
 ‌           21
 ‌          /  \
 ‌         /    \
@@ -158,7 +156,7 @@ replaced with the new sample and sum tree leaf node corresponding to the oldest 
 with the new sample value.
 
 One existing leaf node (i.e. sample value) is always re-read when updating that leaf node's
-neighbour, meaning that after N samples have been added, all the leaf nodes have been re-read. This
+neighbor, meaning that after N samples have been added, all the leaf nodes have been re-read. This
 is what keeps the floating point rounding error from accumulating.
 
 *Author's note:* If anyone has the brains and will to prove this formally, they are most welcome to
