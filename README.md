@@ -73,7 +73,7 @@ the name if this implementation. The sum of all samples is calculated from scrat
 complexity (`N` being the sample window size), every time the average is requested.
 
 **When to use**
- - When the sample window size is so small that the samples summation cost is negligible.
+ - When the sample window size is so small that the samples summation cost is negligable.
  - When new samples are written significantly more often than the average value is read.
 
 #### SingleSumSMA
@@ -155,7 +155,7 @@ replaced with the new sample and sum tree leaf node corresponding to the oldest 
 with the new sample value.
 
 One existing leaf node (i.e. sample value) is always re-read when updating that leaf node's
-neighbor, meaning that after N samples have been added, all the leaf nodes have been re-read. This
+neighbour, meaning that after N samples have been added, all the leaf nodes have been re-read. This
 is what keeps the floating point rounding error from accumulating.
 
 *Author's note:* If anyone has the brains and will to prove this formally, they are most welcome to
