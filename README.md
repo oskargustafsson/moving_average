@@ -1,5 +1,7 @@
 # simple_moving_average
 
+![Code coverage](test_coverage/badges/flat_square.svg)
+
 This crate provides several algorithms for calculating the
 [simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages) (SMA)
 of a series of data samples. SMAs are commonly used to implement
