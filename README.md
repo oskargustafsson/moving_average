@@ -1,6 +1,6 @@
 # simple_moving_average
 
-![Code coverage](test_coverage/badges/flat_square.svg)
+[![Test coverage](test_coverage/badges/flat_square.svg)](test_coverage/)
 
 This crate provides several algorithms for calculating the
 [simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_averages) (SMA)

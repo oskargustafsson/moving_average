@@ -9,12 +9,17 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      RUSTC_BOOTSTRAP: '1'
+      RUSTFLAGS: '-Zinstrument-coverage'
+      LLVM_PROFILE_FILE: 'tmp_test_data/simple_moving_average-%p-%m.profraw'
     steps:
     - uses: actions/checkout@v2
     - name: Run tests
-      run: make test_coverage
+      run: pwd && cargo install grcov && rustup component add llvm-tools-preview && make test_coverage
     - name: Generate README file
-      run: make readme
+      run: cargo install cargo-readme && make readme
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Update auto-generated docs and reports
+        add_options: '--all'

@@ -1,6 +1,6 @@
 # {{crate}}
 
-![Code coverage](test_coverage/badges/flat_square.svg)
+[![Test coverage](test_coverage/badges/flat_square.svg)](test_coverage/)
 
 {{readme}}
 
