@@ -1,5 +1,6 @@
 use std::ops::Add;
 
+#[derive(Clone, Debug)]
 pub struct SumTree<Sample> {
 	// TODO: Convert this to an array and use it as SumTreeSMA's main data storage, once
 	// https://github.com/rust-lang/rust/issues/76560 is stable

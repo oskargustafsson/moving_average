@@ -7,6 +7,7 @@ use std::{
 };
 
 /// An SMA implementation that does not cache any intermediate sample sum.
+#[derive(Clone, Copy, Debug)]
 pub struct NoSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: RingBuffer<Sample, WINDOW_SIZE>,
 	zero: Sample,

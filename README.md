@@ -15,7 +15,15 @@ a scalar can be averaged. This includes most primitive numeric types
 [u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
 [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
 many third party math library ([nalgebra](https://docs.rs/nalgebra/),
-[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) vector and matrix types.
+[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) vector and matrix types,
+to name a few.
+
+### Project status
+
+The library is actively used, feature complete, fully tested and there are no known bugs. It can be
+considered production ready, but it is not actively developed, as there are no obvious needs
+motivating it. Bug reports, feature requests and pull requests are welcome through
+[GitHub](https://github.com/oskargustafsson/moving_average).
 
 ### Examples
 

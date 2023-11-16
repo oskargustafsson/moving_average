@@ -10,6 +10,7 @@ type SumTreeNodeIdx = usize;
 
 /// An SMA implementation that caches the sum of all samples currently in the sample window as a
 /// tree of sums.
+#[derive(Clone, Debug)]
 pub struct SumTreeSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: RingBuffer<SumTreeNodeIdx, WINDOW_SIZE>,
 	sum_tree: SumTree<Sample>,

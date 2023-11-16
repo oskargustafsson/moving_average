@@ -1,6 +1,6 @@
 [package]
 name = "simple_moving_average"
-version = "0.1.2"
+version = "1.0.0"
 edition = "2018"
 authors = ["Oskar Gustafsson <oskargustafsson88@gmail.com>"]
 description = "Library of simple moving average (SMA) algorithms"
@@ -24,11 +24,11 @@ name = "simple_moving_average"
 path = "src/lib.rs"
 
 [dependencies]
-num-traits = "0.2.14"
+num-traits = "0.2.17"
 
 [dev-dependencies]
-rand = { version = "0.8.4", features = ["small_rng"] }
-nalgebra = "0.29.0"
-euclid = "0.22.6"
+rand = { version = "0.8.5", features = ["small_rng"] }
+nalgebra = "0.32.3"
+euclid = "0.22.9"
 cgmath = "0.18.0"
-rayon = "1.5.1"
+rayon = "1.8.0"

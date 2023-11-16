@@ -3,6 +3,7 @@ use crate::{
 	Iter,
 };
 
+#[derive(Clone, Copy, Debug)]
 pub struct RingBuffer<Item, const CAPACITY: usize> {
 	items: [Item; CAPACITY],
 	front_idx: usize,
