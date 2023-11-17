@@ -1,6 +1,6 @@
 # simple_moving_average
 
-[![Test coverage](test_coverage/badges/flat_square.svg)](test_coverage/)
+[![Test coverage](test_coverage/html/badges/flat_square.svg)](test_coverage/)
 
 This crate provides several algorithms for calculating the
 [simple moving average](https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average) (SMA)
@@ -14,9 +14,8 @@ a scalar can be averaged. This includes most primitive numeric types
 ([f32](https://doc.rust-lang.org/std/primitive.f32.html),
 [u32](https://doc.rust-lang.org/std/primitive.u32.html), ...),
 [Duration](https://doc.rust-lang.org/std/time/struct.Duration.html) and
-many third party math library ([nalgebra](https://docs.rs/nalgebra/),
-[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) vector and matrix types,
-to name a few.
+many third party math library (e.g. [nalgebra](https://docs.rs/nalgebra/),
+[euclid](https://docs.rs/euclid/), [cgmath](https://docs.rs/cgmath/), ...) vector and matrix types.
 
 ### Project status
 
