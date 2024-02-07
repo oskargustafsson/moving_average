@@ -1,5 +1,6 @@
 use crate::common::{wrapping_add, wrapping_sub};
 
+#[derive(Debug)]
 pub struct Iter<'a, Item: 'a, const CAPACITY: usize> {
 	items: &'a [Item],
 	cursor_idx: usize,
