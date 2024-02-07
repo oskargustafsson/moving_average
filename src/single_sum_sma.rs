@@ -8,7 +8,7 @@ use std::{
 
 /// An SMA implementation that caches the sum of all samples currently in the sample window as a
 /// single value.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct SingleSumSMA<Sample, Divisor, const WINDOW_SIZE: usize> {
 	samples: RingBuffer<Sample, WINDOW_SIZE>,
 	sum: Sample,
